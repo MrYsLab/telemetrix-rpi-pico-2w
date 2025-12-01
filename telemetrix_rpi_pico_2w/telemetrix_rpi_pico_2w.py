@@ -18,6 +18,7 @@
 import sys
 import threading
 import time
+import struct
 from collections import deque
 
 import serial
@@ -122,10 +123,7 @@ class TelemetrixRpiPico2w(threading.Thread):
             {PrivateConstants.SERVO_UNAVAILABLE: self._servo_unavailable})
         self.report_dispatch.update(
             {PrivateConstants.I2C_READ_REPORT: self._i2c_read_report})
-        self.report_dispatch.update(
-            {PrivateConstants.I2C_WRITE_FAILED: self._i2c_write_failed})
-        self.report_dispatch.update(
-            {PrivateConstants.I2C_READ_FAILED: self._i2c_read_failed})
+
         self.report_dispatch.update(
             {PrivateConstants.SONAR_DISTANCE: self._sonar_distance_report})
         self.report_dispatch.update({PrivateConstants.DHT_REPORT: self._dht_report})
@@ -182,6 +180,9 @@ class TelemetrixRpiPico2w(threading.Thread):
 
         # flag to indicate if i2c was previously enabled
         self.i2c_enabled = False
+
+        # maximum pwm duty cycle - 20000
+        self.maximum_pwm_duty_cycle = PrivateConstants.MAX_PWM_DUTY_CYCLE
 
         # Create a dictionary to store the pins in use.
         # Notice that gpio pins 23, 24 and 25 are not included
@@ -296,7 +297,7 @@ class TelemetrixRpiPico2w(threading.Thread):
         """
 
         # a list of serial ports to be checked
-        serial_ports = []
+        # serial_ports = []
 
         print('Opening all potential serial ports...')
         the_ports_list = list_ports.comports()
@@ -313,15 +314,17 @@ class TelemetrixRpiPico2w(threading.Thread):
                 continue
             # create a list of serial ports that we opened
             # make sure this is a pico board
-            if port.pid == 10 and port.vid == 11914:
-                serial_ports.append(self.serial_port)
+
+            if port.pid != 10 and port.pid != 61455:
+                if port.vid == 11914:
+                    serial_ports.append(self.serial_port)
 
                 # display to the user
                 print('\t' + port.device)
 
-                # clear out the serial buffers
-                self.serial_port.reset_input_buffer()
-                self.serial_port.reset_output_buffer()
+            # clear out the serial buffers
+            self.serial_port.reset_input_buffer()
+            self.serial_port.reset_output_buffer()
 
     def _manual_open(self):
         """
@@ -361,48 +364,34 @@ class TelemetrixRpiPico2w(threading.Thread):
                 self.shutdown()
             raise RuntimeError('User Hit Control-C')
 
-    def pwm_write(self, pin, duty_cycle=0, raw=False):
+    def pwm_write(self, pin, duty_cycle=0):
         """
         Set the specified pin to the specified value.
+        This is a PWM write.
 
         :param pin: pico GPIO pin number
 
-        :param duty_cycle: if the raw parameter is False, then this is expressed
-                           as a percentage between 0 and 100
+        :param duty_cycle: output value - This is dependent upon
+                           the PWM range. Default is 20000, but it
+                           may be modified by calling pwm_range
 
-                           if the raw parameter is True, then the valid range
-                           of values is from 0 - 19999
-
-       :param raw: Sets how the duty-cycle parameter is perceived.
 
         """
         if self.pico_pins[pin] != PrivateConstants.AT_PWM_OUTPUT \
                 and self.pico_pins[pin] != PrivateConstants.AT_SERVO:
             if self.shutdown_on_exception:
                 self.shutdown()
-            raise RuntimeError('pwm_write: You must set the pin mode before performing '
-                               'a PWM write.')
-        if raw:
-            if not (0 <= duty_cycle < PrivateConstants.MAX_RAW_DUTY_CYCLE):
-                if self.shutdown_on_exception:
-                    self.shutdown()
-                raise RuntimeError('Raw PWM duty cycle out of range')
-            # else:
-            #     dc = duty_cycle
-        else:
-            if not (0 <= duty_cycle <= 99):
-                if self.shutdown_on_exception:
-                    self.shutdown()
-                raise RuntimeError('Raw PWM duty cycle percentage of range')
-            # calculate percentage of duty cycle
-            else:
-                duty_cycle = ((PrivateConstants.MAX_RAW_DUTY_CYCLE * duty_cycle) // 100)
-                # print(duty_cycle)
+            raise RuntimeError('pwm_write: You must set the pin mode before '
+                               'performing a pwm write.')
 
-        value_msb = duty_cycle >> 8
-        value_lsb = duty_cycle & 0x00ff
+        if not (0 <= duty_cycle <= self.maximum_pwm_duty_cycle):
+            if self.shutdown_on_exception:
+                self.shutdown()
+            raise RuntimeError('Raw PWM duty cycle out of range')
 
-        command = [PrivateConstants.PWM_WRITE, pin, value_msb, value_lsb]
+        value = duty_cycle.to_bytes(2, byteorder='big')
+
+        command = [PrivateConstants.ANALOG_WRITE, pin, value[0], value[1]]
         self._send_command(command)
 
     def digital_write(self, pin, value):
@@ -474,6 +463,59 @@ class TelemetrixRpiPico2w(threading.Thread):
         command = [PrivateConstants.MODIFY_REPORTING,
                    PrivateConstants.REPORTING_DIGITAL_ENABLE, pin]
         self._send_command(command)
+
+    def get_cpu_temperature(self, threshold=1.0, polling_interval=1000, callback=None):
+        """
+        Request the CPU temperature. This will continuously monitor the temperature
+        and report it back in degrees Celsius. Call only once, unless you wish to
+        modify the polling interval.
+
+        :param threshold:    The threshold value is used to determine when a
+        temperature report is generated. The current temperature is compared to
+        plus and minus the threshold value and if the value is exceeded, a report
+        will be generated. To receive continuous reports, set the threshold to 0.
+        The maximum of 5.0 degrees.
+
+        :param polling_interval: number of milliseconds between temperature reads.
+                                 Maximum of 60 seconds (6000 ms.)
+
+        :param callback: callback function
+
+        callback returns a list:
+        [CPU_TEMPERATURE_REPORT, degrees_celsius, raw_time_stamp]
+
+        CPU_TEMPERATURE_REPORT = 20
+        """
+
+        if not callback:
+            if self.shutdown_on_exception:
+                self.shutdown()
+            raise RuntimeError('A callback must be specified')
+
+        # convert the floating point threshold to bytes
+
+        if 0.0 <= threshold < 30.0:
+            if 0 <= polling_interval < 60000:
+                thresh_list = list(struct.pack("f", threshold))
+                polling_list = polling_interval.to_bytes(2, byteorder='big')
+                self.cpu_temp_callback = callback
+
+                self.cpu_temp_active = True
+
+                command = [PrivateConstants.GET_CPU_TEMPERATURE, thresh_list[0],
+                           thresh_list[1],
+                           thresh_list[2], thresh_list[3], polling_list[0],
+                           polling_list[1]]
+
+                self._send_command(command)
+            else:
+                if self.shutdown_on_exception:
+                    self.shutdown()
+                raise RuntimeError('get_cpu_temperature: polling interval out of range.')
+        else:
+            if self.shutdown_on_exception:
+                self.shutdown()
+            raise RuntimeError('get_cpu_temperature: threshold out of range.')
 
     def _get_pico_id(self):
         """
@@ -1569,8 +1611,7 @@ class TelemetrixRpiPico2w(threading.Thread):
             self.shutdown()
         raise RuntimeError(
             f'i2c Write Failed for I2C port {data[0]}')
-        while True:
-            time.sleep(1)
+
 
     def _i2c_read_failed(self, data):
         """
@@ -1582,8 +1623,7 @@ class TelemetrixRpiPico2w(threading.Thread):
             self.shutdown()
         raise RuntimeError(
             f'i2c Read Failed for I2C port {data[0]}')
-        while True:
-            time.sleep(.1)
+
 
     def _report_unique_id(self, data):
         """
