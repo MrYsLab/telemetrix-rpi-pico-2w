@@ -28,11 +28,11 @@ from serial.serialutil import SerialException
 from serial.tools import list_ports
 
 # noinspection PyUnresolvedReferences
-from telemetrix_rpi_pico_2w.private_constants import PrivateConstants
+from telemetrix_rpi_pico_2w_serial.private_constants import PrivateConstants
 
 
 # noinspection PyPep8,PyMethodMayBeStatic,GrazieInspection
-class TelemetrixRpiPico2w(threading.Thread):
+class TelemetrixRpiPico2wSerial(threading.Thread):
     """
     This class exposes and implements a Telemetrix type
     API for the Raspberry Pi Pico.
@@ -55,7 +55,7 @@ class TelemetrixRpiPico2w(threading.Thread):
 
         :param pico_instance_id: If not specified, than don't do id check.
                                  Else contains a board' s pico unique ID.
-                                 This is passed as an array.
+                                 This is passed as list.
 
         :param sleep_tune: A tuning parameter (typically not changed by user)
 
@@ -268,7 +268,8 @@ class TelemetrixRpiPico2w(threading.Thread):
             if self.reported_pico_id != self.pico_instance_id:
                 if self.shutdown_on_exception:
                     self.shutdown()
-                raise RuntimeError(f'Incorrect pico ID: {self.reported_pico_id}')
+                raise RuntimeError(f'Incorrect pico ID Specified - correct ID :'
+                                   f' {self.reported_pico_id}')
             else:
                 print('Valid pico ID Found.')
         # get pico firmware version and print it
@@ -309,7 +310,7 @@ class TelemetrixRpiPico2w(threading.Thread):
                     continue
             try:
                 self.serial_port = serial.Serial(port.device, 115200,
-                                                 timeout=1, writeTimeout=0)
+                                                                 timeout=1, writeTimeout=0)
             except SerialException:
                 continue
             # create a list of serial ports that we opened
@@ -335,7 +336,7 @@ class TelemetrixRpiPico2w(threading.Thread):
         try:
             print(f'Opening {self.com_port}...')
             self.serial_port = serial.Serial(self.com_port, 115200,
-                                             timeout=1, writeTimeout=0)
+                                                             timeout=1, writeTimeout=0)
 
             self._run_threads()
             # time.sleep(self.pico_wait)

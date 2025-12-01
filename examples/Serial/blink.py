@@ -21,7 +21,7 @@
 import sys
 import time
 
-from telemetrix_rpi_pico_2w import telemetrix_rpi_pico_2w
+from telemetrix_rpi_pico_2w_serial import telemetrix_rpi_pico_2w_serial
 
 """
 Setup a pin for digital output 
@@ -32,7 +32,9 @@ and toggle the pin 5 times.
 DIGITAL_PIN = 64  # the board LED
 
 # Create a Telemetrix instance.
-board = telemetrix_rpi_pico_2w.TelemetrixRpiPico2w()
+
+board = telemetrix_rpi_pico_2w_serial.TelemetrixRpiPico2wSerial()
+
 
 # Set the DIGITAL_PIN as an output pin
 board.set_pin_mode_digital_output(DIGITAL_PIN)

@@ -18,7 +18,6 @@
 
 import sys
 import time
-import struct
 
 from telemetrix_rpi_pico_2w import telemetrix_rpi_pico_2w
 

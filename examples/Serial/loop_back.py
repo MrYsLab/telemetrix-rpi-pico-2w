@@ -19,7 +19,6 @@ import time
 import sys
 from telemetrix_rpi_pico_2w import telemetrix_rpi_pico_2w
 
-
 # Create a Telemetrix instance.
 board = telemetrix_rpi_pico_2w.TelemetrixRpiPico2w()
 
