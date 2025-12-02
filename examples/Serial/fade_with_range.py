@@ -19,7 +19,7 @@
 import sys
 import time
 
-from telemetrix_rpi_pico_w import telemetrix_rpi_pico_w
+from telemetrix_rpi_pico_2w_serial import telemetrix_rpi_pico_2w_serial
 
 """
 Setup a pin for output and fade its intensity
@@ -27,10 +27,10 @@ Setup a pin for output and fade its intensity
 
 # some globals
 # make sure to select a PWM pin
-DIGITAL_PIN = 0
+DIGITAL_PIN = 6
 
 # Create a Telemetrix instance.
-board = telemetrix_rpi_pico_w.TelemetrixRpiPicoW(ip_address='192.168.2.102')
+board = telemetrix_rpi_pico_2w_serial.TelemetrixRpiPico2wSerial()
 board.pwm_range(255)
 
 # Set the DIGITAL_PIN as an output pin
@@ -44,10 +44,10 @@ try:
     # use raw values for a fade
     for level in range(0, 255, 5):
         board.pwm_write(DIGITAL_PIN, level)
-        time.sleep(.001)
+        time.sleep(.01)
     for level in range(255, 0, -5):
         board.pwm_write(DIGITAL_PIN, level)
-        time.sleep(.001)
+        time.sleep(.01)
 
     board.pwm_write(DIGITAL_PIN, 0)
 

@@ -17,10 +17,10 @@
 
 """
 import time
-from telemetrix_rpi_pico_2w import telemetrix_rpi_pico_2w
+from telemetrix_rpi_pico_2w_serial import telemetrix_rpi_pico_2w_serial
 
 # Create a Telemetrix instance.
-board = telemetrix_rpi_pico_2w.TelemetrixRpiPico2w()
+board = telemetrix_rpi_pico_2w_serial.TelemetrixRpiPico2wSerial()
 
 """
 Setup a pin for output and fade its intensity
@@ -28,7 +28,7 @@ Setup a pin for output and fade its intensity
 
 # some globals
 # make sure to select a PWM pin
-DIGITAL_PIN = 64
+DIGITAL_PIN = 6
 
 
 # Set the DIGITAL_PIN as an output pin
