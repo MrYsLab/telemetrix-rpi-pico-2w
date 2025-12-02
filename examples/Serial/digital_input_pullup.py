@@ -1,5 +1,5 @@
 """
- Copyright (c) 2021 Alan Yorinks All rights reserved.
+ Copyright (c) 2025 Alan Yorinks All rights reserved.
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -20,7 +20,7 @@
 import sys
 import time
 
-from telemetrix_rpi_pico_w import telemetrix_rpi_pico_w
+from telemetrix_rpi_pico_2w_serial import telemetrix_rpi_pico_2w_serial
 
 """
 Monitor a digital input pin with pullup enabled
@@ -36,7 +36,7 @@ CB_PIN = 1
 CB_VALUE = 2
 CB_TIME = 3
 
-DIGITAL_INPUT_PIN = 5
+DIGITAL_INPUT_PIN = 12
 
 
 def the_callback(data):
@@ -52,19 +52,17 @@ def the_callback(data):
           f'Value: {data[CB_VALUE]} Time Stamp: {date}')
 
 
-board = telemetrix_rpi_pico_w.TelemetrixRpiPicoW(ip_address='192.168.2.102')
+# instantiate telemetrix
+board = telemetrix_rpi_pico_2w_serial.TelemetrixRpiPico2wSerial()
 
+# set the pin mode
+board.set_pin_mode_digital_input_pullup(DIGITAL_INPUT_PIN, the_callback)
+
+# wait for pin changes
 try:
-    print('Reporting enabled for 5 seconds.')
-    time.sleep(5)
-    print('Disabling reporting for DIGITAL_INPUT_PIN 3 seconds.')
-    board.disable_digital_reporting(DIGITAL_INPUT_PIN)
-    time.sleep(3)
-    print('Re-enabling reporting for DIGITAL_INPUT_PIN.')
-    board.enable_digital_reporting(DIGITAL_INPUT_PIN)
     while True:
-        time.sleep(5)
-
+        time.sleep(.1)
 except KeyboardInterrupt:
     board.shutdown()
     sys.exit(0)
+
