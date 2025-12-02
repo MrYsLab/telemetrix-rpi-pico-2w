@@ -17,10 +17,10 @@
 
 import time
 import sys
-from telemetrix_rpi_pico_2w import telemetrix_rpi_pico_2w
+from telemetrix_rpi_pico_2w_serial import telemetrix_rpi_pico_2w_serial
 
 # Create a Telemetrix instance.
-board = telemetrix_rpi_pico_2w.TelemetrixRpiPico2w()
+board = telemetrix_rpi_pico_2w_serial.TelemetrixRpiPico2wSerial()
 
 
 """

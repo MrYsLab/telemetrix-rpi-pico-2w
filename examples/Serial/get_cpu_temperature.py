@@ -18,9 +18,10 @@
 
 import sys
 import time
+from telemetrix_rpi_pico_2w_serial import telemetrix_rpi_pico_2w_serial
 
-from telemetrix_rpi_pico_2w import telemetrix_rpi_pico_2w
 
+#
 """
 Monitor the Pico internal temperature sensor and return the temperature
 in celsius in the callback.
@@ -31,6 +32,8 @@ CB_PIN_MODE = 0
 CB_PIN = 1
 CB_VALUE = 2
 CB_TIME = 3
+
+board = telemetrix_rpi_pico_2w_serial.TelemetrixRpiPico2wSerial()
 
 
 def the_callback(data):
@@ -50,11 +53,12 @@ def get_cpu_temp():
     """
      This function will request cpu temperature reports
      """
-    board = telemetrix_rpi_pico_2w.TelemetrixRpiPico2w()
+    # board = telemetrix_rpi_pico_2w_serial.TelemetrixRpiPico2wSerial()
 
     # set the pin mode
     board.get_cpu_temperature(threshold=.01, polling_interval=3000,
                               callback=the_callback)
+    time.sleep(.4)
 
     print('Enter Control-C to quit.')
     try:

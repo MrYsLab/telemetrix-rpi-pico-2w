@@ -16,7 +16,7 @@
 
 """
 
-from telemetrix_rpi_pico_2w import telemetrix_rpi_pico_2w
+from telemetrix_rpi_pico_2w_serial import telemetrix_rpi_pico_2w_serial
 
 
 def dummy_callback(data):
@@ -24,7 +24,7 @@ def dummy_callback(data):
 
 
 # Create a Telemetrix instance.
-board = telemetrix_rpi_pico_2w.TelemetrixRpiPico2w()
+board = telemetrix_rpi_pico_2w_serial.TelemetrixRpiPico2wSerial()
 
 # set some pins to different modes
 board.set_pin_mode_digital_output(4)

@@ -28,7 +28,7 @@ from serial.serialutil import SerialException
 from serial.tools import list_ports
 
 # noinspection PyUnresolvedReferences
-from telemetrix_rpi_pico_2w_serial.private_constants import PrivateConstants
+from telemetrix_rpi_pico_2w_common.private_constants import PrivateConstants
 
 
 # noinspection PyPep8,PyMethodMayBeStatic,GrazieInspection
@@ -45,7 +45,9 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
     def __init__(self, com_port=None, pico_instance_id=None,
                  sleep_tune=0.000001,
                  shutdown_on_exception=True,
-                 reset_on_shutdown=True):
+                 reset_on_shutdown=True,
+                 pid=61455,
+                 vid=11914):
 
         """
 
@@ -64,6 +66,10 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
                                       receiving a KeyboardInterrupt exception
 
         :para reset_on_shutdown: Reset the board upon shutdown
+
+        :para pid: Raspberry Pi Pico Product ID (Not checked if com port is specified)
+
+        :para vid: Raspberry Pi Pico Vendor ID (Not checked if com port is specified)
         """
 
         # initialize threading parent
@@ -96,6 +102,8 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         self.sleep_tune = sleep_tune
         self.shutdown_on_exception = shutdown_on_exception
         self.reset_on_shutdown = reset_on_shutdown
+        self.pid = pid
+        self.vid = vid
 
         # create a deque to receive and process data from the pico
         self.the_deque = deque()
@@ -123,7 +131,8 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
             {PrivateConstants.SERVO_UNAVAILABLE: self._servo_unavailable})
         self.report_dispatch.update(
             {PrivateConstants.I2C_READ_REPORT: self._i2c_read_report})
-
+        self.report_dispatch.update(
+            {PrivateConstants.CPU_TEMP_REPORT: self._cpu_temp_message})
         self.report_dispatch.update(
             {PrivateConstants.SONAR_DISTANCE: self._sonar_distance_report})
         self.report_dispatch.update({PrivateConstants.DHT_REPORT: self._dht_report})
@@ -142,6 +151,9 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         self.i2c_0_active = False
         self.i2c_1_active = False
+
+        self.cpu_temp_callback = None
+        self.cpu_temp_active = False
 
         # spi
         self.spi_callback = None
@@ -169,9 +181,6 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         # debug loopback callback method
         self.loop_back_callback = None
 
-        # flag to indicate the start of a new report
-        # self.new_report_start = True
-
         # firmware version to be stored here
         self.firmware_version = []
 
@@ -191,12 +200,16 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         # This dictionary is a list of gpio pins updated with the pin mode when a pin mode
         # is set.
         # It is created initially using a dictionary comprehension.
+
         self.pico_pins = {gpio_pin: PrivateConstants.AT_MODE_NOT_SET for gpio_pin in
-                          range(65)}
+                          range(23)}
 
         # skip over unavailable pins
         for pin in range(25, 29):
             self.pico_pins[pin] = PrivateConstants.AT_MODE_NOT_SET
+
+        # on board LED internal pin
+        self.pico_pins[64] = PrivateConstants.AT_MODE_NOT_SET
 
         # creating a list of available sda and scl pins for i2c. If assigned the pins
         # value will be set to either 0 or 1 depending upon the i2c selected.
@@ -214,26 +227,16 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         for gpio_pin in range(25, 29):
             self.servo_ranges[gpio_pin] = [1000, 2000]
 
-        self.the_reporter_thread.start()
-        self.the_data_receive_thread.start()
-
         # neopixel data
         self.number_of_pixels = None
 
         self.neopixels_initiated = False
 
         print(f"TelemetrixRpiPico:  Version {PrivateConstants.TELEMETRIX_VERSION}\n\n"
-              f"Copyright (c) 2020-2021 Alan Yorinks All Rights Reserved.\n")
-
-        # using the serial link
+              f"Copyright (c) 2020-2025 Alan Yorinks All Rights Reserved.\n")
 
         if not self.com_port:
-            # user did not specify a com_port
-            try:
-                self._find_pico()
-            except KeyboardInterrupt:
-                if self.shutdown_on_exception:
-                    self.shutdown()
+            self._find_pico()
         else:
             # com_port specified - set com_port and baud rate
             try:
@@ -252,9 +255,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         # no com_port found - raise a runtime exception
         else:
-            if self.shutdown_on_exception:
-                self.shutdown()
-            raise RuntimeError('No pico Found or User Aborted Program')
+            sys.exit(0)
 
         # allow the threads to run
         self._run_threads()
@@ -273,16 +274,16 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
             else:
                 print('Valid pico ID Found.')
         # get pico firmware version and print it
-        print('\nRetrieving Telemetrix4pico firmware ID...')
+        print('\nRetrieving Telemetrix4pico2W firmware ID...')
         self._get_firmware_version()
         # time.sleep(.3)
         if not self.firmware_version:
             if self.shutdown_on_exception:
                 self.shutdown()
-            raise RuntimeError(f'Telemetrix4pico firmware version')
+            raise RuntimeError(f'Telemetrix4pico2W firmware version')
 
         else:
-            print(f'Telemetrix4pico firmware version: {self.firmware_version[0]}.'
+            print(f'Telemetrix4pico2W firmware version: {self.firmware_version[0]}.'
                   f'{self.firmware_version[1]}')
         command = [PrivateConstants.ENABLE_ALL_REPORTS]
         self._send_command(command)
@@ -298,40 +299,50 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
 
         # a list of serial ports to be checked
-        # serial_ports = []
+        serial_ports = []
 
         print('Opening all potential serial ports...')
         the_ports_list = list_ports.comports()
         for port in the_ports_list:
-            if port.pid is None:
+            if port.pid != self.pid or port.vid != self.vid:
                 continue
-            if port.pid != 10 and port.pid != 61455:
-                if port.vid != 11914:
-                    continue
             try:
                 self.serial_port = serial.Serial(port.device, 115200,
                                                                  timeout=1, writeTimeout=0)
             except SerialException:
                 continue
+
             # create a list of serial ports that we opened
             # make sure this is a pico board
-
-            if port.pid != 10 and port.pid != 61455:
-                if port.vid == 11914:
-                    serial_ports.append(self.serial_port)
+            if port.pid == self.pid and port.vid == self.vid:
+                serial_ports.append(self.serial_port)
 
                 # display to the user
                 print('\t' + port.device)
 
+            self.the_reporter_thread.start()
+
+            self.the_data_receive_thread.start()
+
             # clear out the serial buffers
             self.serial_port.reset_input_buffer()
             self.serial_port.reset_output_buffer()
+            return
+
+        # raise RuntimeError("Could not find connected device.")
+        print(" _find_pico: Could not find valid serial port. Check for valid PID and "
+              "VID")
+        sys.exit(0)
 
     def _manual_open(self):
         """
         Com port was specified by the user - try to open up that port
 
         """
+
+        self.the_reporter_thread.start()
+
+        self.the_data_receive_thread.start()
         # if port is not found, a serial exception will be thrown
         try:
             print(f'Opening {self.com_port}...')
@@ -339,9 +350,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
                                                              timeout=1, writeTimeout=0)
 
             self._run_threads()
-            # time.sleep(self.pico_wait)
 
-            self._get_pico_id()
             if self.pico_instance_id:
                 if self.reported_pico_id != self.pico_instance_id:
                     if self.shutdown_on_exception:
@@ -349,16 +358,16 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
                     raise RuntimeError(f'Incorrect pico ID: {self.reported_pico_id}')
             print('Valid pico ID Found.')
             # get pico firmware version and print it
-            print('\nRetrieving Telemetrix4pico firmware ID...')
+            print('\nRetrieving Telemetrix4pico2W firmware ID...')
             self._get_firmware_version()
 
             if not self.firmware_version:
                 if self.shutdown_on_exception:
                     self.shutdown()
-                raise RuntimeError(f'Telemetrix4pico Sketch Firmware Version Not Found')
+                raise RuntimeError(f'Telemetrix4pico2W Sketch Firmware Version Not Found')
 
             else:
-                print(f'Telemetrix4pico firmware version: {self.firmware_version[0]}.'
+                print(f'Telemetrix4pico2W firmware version: {self.firmware_version[0]}.'
                       f'{self.firmware_version[1]}')
         except KeyboardInterrupt:
             if self.shutdown_on_exception:
@@ -538,6 +547,23 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         self._send_command(command)
         # provide time for the reply
         time.sleep(.5)
+
+    def _cpu_temp_message(self, data):
+        """
+        This is a private message handler method.
+        It is a message handler for cpu temperature messages.
+
+        :param data: message data
+
+        """
+
+        temperature = struct.unpack('<f', bytes(data))
+        temperature = round(temperature[0], 2)
+        time_stamp = time.time()
+        # self.digital_pins[pin].event_time = time_stamp
+        if self.cpu_temp_callback:
+            message = [PrivateConstants.CPU_TEMP_REPORT, temperature, time_stamp]
+            self.cpu_temp_callback(message)
 
     # TBD
     def i2c_read(self, address, register, number_of_bytes,
@@ -889,7 +915,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         self.number_of_pixels = num_pixels
 
-        command = [PrivateConstants.INITIALIZE_NEO_PIXELS, pin_number,
+        command = [PrivateConstants.INIT_NEO_PIXELS, pin_number,
                    self.number_of_pixels, fill_r, fill_g, fill_b]
 
         self._send_command(command)
@@ -1503,6 +1529,8 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         self.shutdown_flag = True
 
         self._stop_threads()
+        if self.serial_port is None:
+            raise RuntimeError('Shutdown aborted - no serial port')
 
         # try:
         command = [PrivateConstants.STOP_ALL_REPORTS]
