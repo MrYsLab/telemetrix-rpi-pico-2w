@@ -35,7 +35,7 @@ TRIGGER = 1
 DISTANCE_IN_CENTIMETERS = 2
 TIME_STAMP = 3
 
-MAX_TIME_TO_WAIT_FOR_REPORT = 3 # in seconds
+MAX_TIME_TO_WAIT_FOR_REPORT = 3  # in seconds
 
 # initialize to current time
 last_report_received = time.time()

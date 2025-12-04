@@ -2216,15 +2216,17 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
                 command = [PrivateConstants.RESET_BOARD, self.reset_on_shutdown]
                 self._send_command(command)
 
-            time.sleep(.2)
-            try:
-                self.sock.shutdown(socket.SHUT_RDWR)
-                self.sock.close()
-            except Exception:
-                pass
+            # time.sleep(.2)
+            # try:
+            #     self.sock.shutdown(socket.SHUT_RDWR)
+            #     self.sock.close()
+            # except Exception:
+            #     pass
 
         except Exception:
-            raise RuntimeError('Shutdown failed - could not send stop streaming message')
+            # raise RuntimeError('Shutdown failed - could not send stop streaming
+            pass
+    # message')
 
     '''
     report message handlers
@@ -2350,10 +2352,10 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         :param data: data[0] = i2c_device
         """
+        print(f'i2c Too few bytes received for I2C port {data[0]}')
         if self.shutdown_on_exception:
             self.shutdown()
-        raise RuntimeError(
-            f'i2c Too few bytes received for I2C port {data[0]}')
+        # raise RuntimeError(f'i2c Too few bytes received for I2C port {data[0]}')
 
     def _i2c_too_many_bytes_received(self, data):
         """
