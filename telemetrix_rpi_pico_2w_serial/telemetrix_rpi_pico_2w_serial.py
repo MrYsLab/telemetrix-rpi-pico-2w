@@ -31,7 +31,7 @@ from serial.tools import list_ports
 from telemetrix_rpi_pico_2w_common.private_constants import PrivateConstants
 
 
-# noinspection PyPep8,PyMethodMayBeStatic,GrazieInspection
+# noinspection PyPep8,PyMethodMayBeStatic,GrazieInspection,PyTypeChecker
 class TelemetrixRpiPico2wSerial(threading.Thread):
     """
     This class exposes and implements a Telemetrix type
@@ -250,6 +250,34 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         # on board LED internal pin
         self.pico_pins[64] = PrivateConstants.AT_MODE_NOT_SET
+
+        # updated when a new motor is added
+        self.next_stepper_assigned = 0
+
+        # valid list of stepper motor interface types
+        self.valid_stepper_interfaces = [1, 2, 3, 4, 6, 8]
+
+        # maximum number of steppers supported
+        self.max_number_of_steppers = 4
+
+        # number of steppers created - not to exceed the maximum
+        self.number_of_steppers = 0
+
+        # dictionary to hold stepper motor information
+        self.stepper_info = {'instance': False, 'is_running': None,
+                             'maximum_speed': 1, 'speed': 0, 'acceleration': 0,
+                             'distance_to_go_callback': None,
+                             'target_position_callback': None,
+                             'current_position_callback': None,
+                             'is_running_callback': None,
+                             'motion_complete_callback': None,
+                             'acceleration_callback': None}
+
+        # build a list of stepper motor info items
+        self.stepper_info_list = []
+        # a list of dictionaries to hold stepper information
+        for motor in range(self.max_number_of_steppers):
+            self.stepper_info_list.append(self.stepper_info.copy())
 
         # creating a list of available sda and scl pins for i2c. If assigned the pins
         # value will be set to either 0 or 1 depending upon the i2c selected.
@@ -1392,8 +1420,6 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         :param call_back: Required callback function to report spi data as a
                    result of read command
-
-        :param repeated_tx_data: repeated data to send
 
         callback returns a data list:
         [SPI_READ_REPORT, spi_port, count of data bytes, data bytes, time-stamp]
