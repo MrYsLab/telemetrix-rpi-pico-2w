@@ -371,7 +371,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         # raise RuntimeError("Could not find connected device.")
         print(" _find_pico: Could not find valid serial port. Check for valid PID and "
-              "VID")
+              "VID and make sure your PICO is plugged in.")
         sys.exit(0)
 
     def _manual_open(self):
@@ -1188,13 +1188,12 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         :param data_mode: 0=MODE0, 1=MODE1, 2=MODE2 3=MODE3
 
-        miso: SPI data receive pin   spi0 = 16  spi1 = 12
+        miso: SPI data receive pin  spi0 = 16  spi1 = 12
 
-        mosi: SPI data transmit pin  spi0 = 19  spi1 = 15
+        mosi: SPI data transmit pi  spi0 = 19  spi1 = 15
 
-        clock_pin: clock pin         spi0 = 18  spi1 = 14
+        clock_pin: clock pin        spi0 = 18  spi1 = 14
 
-                                 MOSI=15
 
         command message: [command, spi, chip_select, speed, data_order, data_mode]
         """
