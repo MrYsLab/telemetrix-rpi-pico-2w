@@ -1,5 +1,5 @@
 """
- Copyright (c) 2021-2025 Alan Yorinks All rights reserved.
+ Copyright (c) 2022-2025 Alan Yorinks All rights reserved.
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -15,28 +15,25 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-from collections import deque
+import asyncio
+import socket
+import struct
 import sys
-import threading
 import time
 import warnings
-import serial
-import struct
-# noinspection PyPackageRequirementscd
-from serial.serialutil import SerialException
-# noinspection PyPackageRequirements
-from serial.tools import list_ports
 
-# noinspection PyUnresolvedReferences
 from telemetrix_rpi_pico_2w_common.private_constants import PrivateConstants
+from telemetrix_rpi_pico_2w_wifi_aio.telemetrix_pico_2w_wifi_aio_socket import (
+    TelemetrixAioSocket)
 
 
-# noinspection PyPep8,PyMethodMayBeStatic,GrazieInspection,PyTypeChecker
-class TelemetrixRpiPico2wSerial(threading.Thread):
+# noinspection PyMethodMayBeStatic,PyTypeChecker
+
+class TelemetrixRpiPico2WiFiAio:
     """
-    This class exposes and implements a Telemetrix type
-    API for the Raspberry Pi Pico.
-    It uses threading to accommodate concurrency.
+    This class exposes and implements the telemetrix API for the
+    Raspberry Pi Pico W using Python asyncio for concurrency.
+
     It includes the public API methods as well as
     a set of private methods.
 
@@ -44,50 +41,58 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
     """
 
-    def __init__(self, com_port=None, pico_instance_id=None,
+    def __init__(self, ip_address=None,
+                 ip_port=31335,
                  sleep_tune=0.000001,
+                 autostart=True,
+                 loop=None,
                  shutdown_on_exception=True,
                  reset_on_shutdown=True,
-                 pid=61455,
-                 vid=11914):
+                 close_loop_on_shutdown=True):
 
         """
 
-        :param com_port: e.g. COM3 or /dev/ttyACM0.
-                         Only use if you wish to bypass auto com port
-                         detection.
+        :param ip_address: IP address assigned to the Pico W
 
-        :param pico_instance_id: If not specified, than don't do id check.
-                                 Else contains a board' s pico unique ID.
-                                 This is passed as list.
+        :param ip_port: IP Port number.
 
         :param sleep_tune: A tuning parameter (typically not changed by user)
+
+        :param autostart: If you wish to call the start method within your
+                          application manually, then set this to False.
+
+        :param loop: optional user-provided event-loop
 
         :param shutdown_on_exception: call shutdown before raising
                                       a RunTimeError exception, or
                                       receiving a KeyboardInterrupt exception
 
-        :para reset_on_shutdown: Reset the board upon shutdown
+        :param reset_on_shutdown: Reset the board upon shutdown
 
-        :para pid: Raspberry Pi Pico Product ID (Not checked if com port is specified)
-
-        :para vid: Raspberry Pi Pico Vendor ID (Not checked if com port is specified)
+        :param close_loop_on_shutdown: If true, close the loop during shutdown
         """
 
-        # initialize threading parent
-        threading.Thread.__init__(self)
+        self.shutdown_on_exception = shutdown_on_exception
 
-        # create the threads and set them as daemons so
-        # that they stop when the program is closed
+        self.reset_board_on_shutdown = reset_on_shutdown
 
-        # create a thread to interpret received serial data
-        self.the_reporter_thread = threading.Thread(target=self._reporter)
-        self.the_reporter_thread.daemon = True
+        self.close_loop_on_shutdown = close_loop_on_shutdown
 
-        self.the_data_receive_thread = threading.Thread(target=self._serial_receiver)
+        self.autostart = autostart
+        self.ip_address = ip_address
+        self.ip_port = ip_port
+        self.sleep_tune = sleep_tune
 
-        # flag to allow the reporter and receive threads to run.
-        self.run_event = threading.Event()
+        # set the event loop
+        if loop is None:
+            self.loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self.loop)
+        else:
+            self.loop = loop
+
+        if not ip_address:
+            if self.shutdown_on_exception:
+                raise RuntimeError('An IP Address MUST BE SPECIFIED')
 
         # check to make sure that Python interpreter is version 3.7 or greater
         python_version = sys.version_info
@@ -95,20 +100,9 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
             if python_version[1] >= 7:
                 pass
             else:
-                raise RuntimeError("ERROR: Python 3.7 or greater is "
+                if self.shutdown_on_exception:
+                    raise RuntimeError("ERROR: Python 3.7 or greater is "
                                    "required for use of this program.")
-
-        # save input parameters as instance variables
-        self.com_port = com_port
-        self.pico_instance_id = pico_instance_id
-        self.sleep_tune = sleep_tune
-        self.shutdown_on_exception = shutdown_on_exception
-        self.reset_on_shutdown = reset_on_shutdown
-        self.pid = pid
-        self.vid = vid
-
-        # create a deque to receive and process data from the pico
-        self.the_deque = deque()
 
         # The report_dispatch dictionary is used to process
         # incoming report messages by looking up the report message
@@ -130,15 +124,15 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         self.report_dispatch.update(
             {PrivateConstants.FIRMWARE_REPORT: self._firmware_message})
         self.report_dispatch.update(
-            {PrivateConstants.UNIQUE_ID_REPORT: self._report_unique_id})
-        self.report_dispatch.update(
             {PrivateConstants.SERVO_UNAVAILABLE: self._servo_unavailable})
         self.report_dispatch.update(
             {PrivateConstants.I2C_READ_REPORT: self._i2c_read_report})
         self.report_dispatch.update(
-            {PrivateConstants.I2C_TOO_FEW_BYTES_RECEIVED: self._i2c_too_few_bytes_received})
+            {
+                PrivateConstants.I2C_TOO_FEW_BYTES_RECEIVED: self._i2c_too_few_bytes_received})
         self.report_dispatch.update(
-            {PrivateConstants.I2C_TOO_MANY_BYTES_RECEIVED: self._i2c_too_many_bytes_received})
+            {
+                PrivateConstants.I2C_TOO_MANY_BYTES_RECEIVED: self._i2c_too_many_bytes_received})
         self.report_dispatch.update(
             {PrivateConstants.SONAR_DISTANCE: self._sonar_distance_report})
         self.report_dispatch.update({PrivateConstants.DHT_REPORT: self._dht_report})
@@ -167,7 +161,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
             {PrivateConstants.STEPPER_TARGET_POSITION:
                  self._stepper_target_position_report})
 
-        # up to 16 pwm pins may be simultaneously active
+        # up to 16 pwm/servo pins may be simultaneously active
         self.pwm_active_count = 0
 
         # maximum pwm duty cycle - 20000
@@ -210,8 +204,8 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         self.dht_count = 0
 
-        # serial port in use
-        self.serial_port = None
+        # socket for tcp/ip communications
+        self.sock = None
 
         # flag to indicate we are in shutdown mode
         self.shutdown_flag = False
@@ -219,17 +213,14 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         # debug loopback callback method
         self.loop_back_callback = None
 
+        # flag to indicate the start of a new report
+        # self.new_report_start = True
+
         # firmware version to be stored here
         self.firmware_version = []
 
         # reported pico_id
         self.reported_pico_id = []
-
-        # flag to indicate if i2c was previously enabled
-        self.i2c_enabled = False
-
-        # maximum pwm duty cycle - 20000
-        self.maximum_pwm_duty_cycle = PrivateConstants.MAX_PWM_DUTY_CYCLE
 
         # Create a dictionary to store the pins in use.
         # Notice that gpio pins 23, 24 and 25 are not included
@@ -238,7 +229,6 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         # This dictionary is a list of gpio pins updated with the pin mode when a pin mode
         # is set.
         # It is created initially using a dictionary comprehension.
-
         self.pico_pins = {gpio_pin: PrivateConstants.AT_MODE_NOT_SET for gpio_pin in
                           range(23)}
 
@@ -248,6 +238,16 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         # on board LED internal pin
         self.pico_pins[64] = PrivateConstants.AT_MODE_NOT_SET
+
+        self.pico_pins[32] = PrivateConstants.AT_MODE_NOT_SET
+
+        # create a dictionary that holds all the servo ranges
+        self.servo_ranges = {gpio_pin: [1000, 2000] for gpio_pin in
+                             range(23)}
+
+        # skip over unavailable pins
+        for gpio_pin in range(25, 29):
+            self.servo_ranges[gpio_pin] = [1000, 2000]
 
         # updated when a new motor is added
         self.next_stepper_assigned = 0
@@ -277,174 +277,56 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         for motor in range(self.max_number_of_steppers):
             self.stepper_info_list.append(self.stepper_info.copy())
 
-        # creating a list of available sda and scl pins for i2c. If assigned the pins
-        # value will be set to either 0 or 1 depending upon the i2c selected.
-        self.i2c_sda_pins = {n: 255 for n in range(2, 21, 2)}
-        self.i2c_sda_pins[26] = 255
-
-        self.i2c_scl_pins = {n: 255 for n in range(3, 22, 2)}
-        self.i2c_scl_pins[27] = 255
-
-        # create a dictionary that holds all the servo ranges
-        self.servo_ranges = {gpio_pin: [1000, 2000] for gpio_pin in
-                             range(23)}
-
-        # skip over unavailable pins
-        for gpio_pin in range(25, 29):
-            self.servo_ranges[gpio_pin] = [1000, 2000]
+        # self.the_reporter_thread.start()
+        # self.the_data_receive_thread.start()
 
         # neopixel data
         self.number_of_pixels = None
 
         self.neopixels_initiated = False
 
-        print(f"TelemetrixRpiPicoW2:  Version {PrivateConstants.TELEMETRIX_VERSION}\n\n"
-              f"Copyright (c) 2020-2025 Alan Yorinks All Rights Reserved.\n")
+        # generic asyncio task holder
+        self.the_task = None
 
-        if not self.com_port:
-            self._find_pico()
-        else:
-            # com_port specified - set com_port and baud rate
-            try:
-                self._manual_open()
-            except KeyboardInterrupt:
-                if self.shutdown_on_exception:
-                    self.shutdown()
+        print(f"TelemetrixRpiPicoWAio:  Version {PrivateConstants.TELEMETRIX_VERSION}\n\n"
+              f"Copyright (c) 2022 Alan Yorinks All Rights Reserved.\n")
 
-        if self.serial_port:
-            print(
-                f"Serial compatible device found and connected to"
-                f" {self.serial_port.port}")
+        print('Establishing IP connection...')
 
-            self.serial_port.reset_input_buffer()
-            self.serial_port.reset_output_buffer()
+        if autostart:
+            self.loop.run_until_complete(self.start_aio())
 
-        # no com_port found - raise a runtime exception
-        else:
-            sys.exit(0)
+    async def start_aio(self):
+        """
+        This method completes the instantiation of the TelemetrixPicoWAIO
+        class. If you set autostart to False, then your application decides
+        when to complete the instantiation.
+        """
+        self.sock = TelemetrixAioSocket(self.ip_address, self.ip_port, self.loop)
+        await self.sock.start()
 
-        # allow the threads to run
-        self._run_threads()
+        self.the_task = self.loop.create_task(self._report_dispatcher())
 
-        print('Retrieving pico ID...')
-        self._get_pico_id()
-        # time.sleep(.2)
-        print(f'Pico Unique ID: {self.reported_pico_id}')
+        # get telemetrix firmware version and print it
+        print('\nRetrieving Telemetrix4RpiPicoW firmware ID...')
+        await self._get_firmware_version()
 
-        if self.pico_instance_id:
-            if self.reported_pico_id != self.pico_instance_id:
-                if self.shutdown_on_exception:
-                    self.shutdown()
-                raise RuntimeError(f'Incorrect pico ID Specified - correct ID :'
-                                   f' {self.reported_pico_id}')
-            else:
-                print('Valid pico ID Found.')
-        # get pico firmware version and print it
-        print('\nRetrieving Telemetrix4pico2W firmware ID...')
-        self._get_firmware_version()
-        # time.sleep(.3)
         if not self.firmware_version:
-            if self.shutdown_on_exception:
-                self.shutdown()
-            raise RuntimeError(f'Telemetrix4pico2W firmware version')
-
-        else:
-            print(f'Telemetrix4pico2W firmware version: {self.firmware_version[0]}.'
-                  f'{self.firmware_version[1]}')
-        command = [PrivateConstants.ENABLE_ALL_REPORTS]
-        self._send_command(command)
-
-        # Have the server reset its data structures
-        command = [PrivateConstants.RESET_DATA]
-        self._send_command(command)
-
-    def _find_pico(self):
-        """
-        This method will search all potential serial ports for a pico
-        board using its USB PID and VID.
-        """
-
-        # a list of serial ports to be checked
-        serial_ports = []
-
-        print('Opening all potential serial ports...')
-        the_ports_list = list_ports.comports()
-        for port in the_ports_list:
-            if port.pid != self.pid or port.vid != self.vid:
-                continue
-            try:
-                self.serial_port = serial.Serial(port.device, 115200,
-                                                                 timeout=1, writeTimeout=0)
-            except SerialException:
-                continue
-
-            # create a list of serial ports that we opened
-            # make sure this is a pico board
-            if port.pid == self.pid and port.vid == self.vid:
-                serial_ports.append(self.serial_port)
-
-                # display to the user
-                print('\t' + port.device)
-
-            self.the_reporter_thread.start()
-
-            self.the_data_receive_thread.start()
-
-            # clear out the serial buffers
-            self.serial_port.reset_input_buffer()
-            self.serial_port.reset_output_buffer()
-            return
-
-        # raise RuntimeError("Could not find connected device.")
-        print(" _find_pico: Could not find valid serial port. Check for valid PID and "
-              "VID and make sure your PICO is plugged in.")
-        sys.exit(0)
-
-    def _manual_open(self):
-        """
-        Com port was specified by the user - try to open up that port
-
-        """
-
-        self.the_reporter_thread.start()
-
-        self.the_data_receive_thread.start()
-        # if port is not found, a serial exception will be thrown
-        try:
-            print(f'Opening {self.com_port}...')
-            self.serial_port = serial.Serial(self.com_port, 115200,
-                                                             timeout=1, writeTimeout=0)
-
-            print(
-                f'\nWaiting {self.arduino_wait} seconds(arduino_wait) for Arduino devices to '
-                'reset...')
-            self._run_threads()
-            time.sleep(self.arduino_wait)
-
-            if self.pico_instance_id:
-                if self.reported_pico_id != self.pico_instance_id:
-                    if self.shutdown_on_exception:
-                        self.shutdown()
-                    raise RuntimeError(f'Incorrect pico ID: {self.reported_pico_id}')
-            print('Valid pico ID Found.')
-            # get pico firmware version and print it
-            print('\nRetrieving Telemetrix4pico2W firmware ID...')
-            self._get_firmware_version()
-
+            print(self.firmware_version)
+            await self._get_firmware_version()
             if not self.firmware_version:
                 if self.shutdown_on_exception:
-                    self.shutdown()
-                raise RuntimeError(f'Telemetrix4pico2W Sketch Firmware Version Not Found')
+                    await self.shutdown()
+                    await asyncio.sleep(.3)
+                raise RuntimeError(f'Telemetrix4RpiPicoW  firmware version')
 
-            else:
-                print(f'Telemetrix4pico2W firmware version: {self.firmware_version[0]}.'
-                      f'{self.firmware_version[1]}')
-        except KeyboardInterrupt:
-            if self.shutdown_on_exception:
-                self.shutdown()
-            raise RuntimeError('User Hit Control-C')
+        else:
+            print(f'Telemetrix4RpiPicoW  firmware version: {self.firmware_version[0]}.'
+                  f'{self.firmware_version[1]}.{self.firmware_version[2]}')
+        command = [PrivateConstants.ENABLE_ALL_REPORTS]
+        await self._send_command(command)
 
-    def pwm_write(self, pin, duty_cycle=0):
+    async def pwm_write(self, pin, duty_cycle=0):
         """
         Set the specified pin to the specified value.
         This is a PWM write.
@@ -460,21 +342,21 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         if self.pico_pins[pin] != PrivateConstants.AT_PWM_OUTPUT \
                 and self.pico_pins[pin] != PrivateConstants.AT_SERVO:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('pwm_write: You must set the pin mode before '
-                               'performing a pwm write.')
+                               'performing an pwm write.')
 
         if not (0 <= duty_cycle <= self.maximum_pwm_duty_cycle):
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('Raw PWM duty cycle out of range')
 
         value = duty_cycle.to_bytes(2, byteorder='big')
 
         command = [PrivateConstants.ANALOG_WRITE, pin, value[0], value[1]]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def pwm_frequency(self, frequency):
+    async def pwm_frequency(self, frequency):
         """
         Modify the pwm frequency. Valid values are in the range of 100Hz to 1MHz
 
@@ -484,13 +366,13 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
             freq = frequency.to_bytes(4, byteorder='big')
 
             command = [PrivateConstants.SET_PWM_FREQ, freq[0], freq[1], freq[2], freq[3]]
-            self._send_command(command)
+            await self._send_command(command)
         else:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('pwm_frequency is out of range')
 
-    def pwm_range(self, range_pwm):
+    async def pwm_range(self, range_pwm):
         """
         Set the duty cycle range.
         The range of values is 16 to 65535
@@ -504,13 +386,13 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
             command = [PrivateConstants.SET_PWM_RANGE, data[0], data[1],
                        data[2], data[3]]
-            self._send_command(command)
+            await self._send_command(command)
         else:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('pwm_range is out of range')
 
-    def digital_write(self, pin, value):
+    async def digital_write(self, pin, value):
         """
         Set the specified pin to the specified value.
 
@@ -521,32 +403,32 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if self.pico_pins[pin] != PrivateConstants.AT_OUTPUT:
             if self.shutdown_on_exception:
-                self.shutdown()
-            raise RuntimeError('pwm_write: You must set the pin mode before performing '
-                               'a digital write.')
+                await self.shutdown()
+            raise RuntimeError('digital_write: You must set the pin mode before '
+                               'performing a digital write.')
         command = [PrivateConstants.DIGITAL_WRITE, pin, value]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def disable_all_reporting(self):
+    async def disable_all_reporting(self):
         """
         Disable reporting for all digital and analog input pins
         """
         command = [PrivateConstants.MODIFY_REPORTING,
                    PrivateConstants.REPORTING_DISABLE_ALL, 0]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def disable_analog_reporting(self, pin):
+    async def disable_analog_reporting(self, pin):
         """
         Disables analog reporting for a single analog pin.
 
-        :param pin: Analog pin number. For example for ADC, the number is 0.
+        :param pin: Analog pin number. For example for ADC0, the number is 0.
 
         """
         command = [PrivateConstants.MODIFY_REPORTING,
                    PrivateConstants.REPORTING_ANALOG_DISABLE, pin]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def disable_digital_reporting(self, pin):
+    async def disable_digital_reporting(self, pin):
         """
         Disables digital reporting for a single digital input.
 
@@ -555,9 +437,9 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         command = [PrivateConstants.MODIFY_REPORTING,
                    PrivateConstants.REPORTING_DIGITAL_DISABLE, pin]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def enable_analog_reporting(self, pin):
+    async def enable_analog_reporting(self, pin):
         """
         Enables analog reporting for the specified pin.
 
@@ -567,9 +449,9 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         command = [PrivateConstants.MODIFY_REPORTING,
                    PrivateConstants.REPORTING_ANALOG_ENABLE, pin]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def enable_digital_reporting(self, pin):
+    async def enable_digital_reporting(self, pin):
         """
         Enable reporting on the specified digital pin.
 
@@ -578,102 +460,23 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         command = [PrivateConstants.MODIFY_REPORTING,
                    PrivateConstants.REPORTING_DIGITAL_ENABLE, pin]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def get_cpu_temperature(self, threshold=1.0, polling_interval=1000, callback=None):
-        """
-        Request the CPU temperature. This will continuously monitor the temperature
-        and report it back in degrees Celsius. Call only once, unless you wish to
-        modify the polling interval.
-
-        :param threshold:    The threshold value is used to determine when a
-        temperature report is generated. The current temperature is compared to
-        plus and minus the threshold value and if the value is exceeded, a report
-        will be generated. To receive continuous reports, set the threshold to 0.
-        The maximum of 5.0 degrees.
-
-        :param polling_interval: number of milliseconds between temperature reads.
-                                 Maximum of 60 seconds (6000 ms.)
-
-        :param callback: callback function
-
-        callback returns a list:
-        [CPU_TEMPERATURE_REPORT, degrees_celsius, raw_time_stamp]
-
-        CPU_TEMPERATURE_REPORT = 20
-        """
-
-        if not callback:
-            if self.shutdown_on_exception:
-                self.shutdown()
-            raise RuntimeError('A callback must be specified')
-
-        # convert the floating point threshold to bytes
-
-        if 0.0 <= threshold < 30.0:
-            if 0 <= polling_interval < 60000:
-                thresh_list = list(struct.pack("f", threshold))
-                polling_list = polling_interval.to_bytes(2, byteorder='big')
-                self.cpu_temp_callback = callback
-
-                self.cpu_temp_active = True
-
-                command = [PrivateConstants.GET_CPU_TEMPERATURE, thresh_list[0],
-                           thresh_list[1],
-                           thresh_list[2], thresh_list[3], polling_list[0],
-                           polling_list[1]]
-
-                self._send_command(command)
-            else:
-                if self.shutdown_on_exception:
-                    self.shutdown()
-                raise RuntimeError('get_cpu_temperature: polling interval out of range.')
-        else:
-            if self.shutdown_on_exception:
-                self.shutdown()
-            raise RuntimeError('get_cpu_temperature: threshold out of range.')
-
-    def _get_pico_id(self):
-        """
-        Retrieve pico-telemetrix pico id
-
-        """
-        command = [PrivateConstants.RETRIEVE_PICO_UNIQUE_ID]
-        self._send_command(command)
-        # provide time for the reply
-        time.sleep(.5)
-
-    def _get_firmware_version(self):
+    async def _get_firmware_version(self):
         """
         This method retrieves the
         pico-telemetrix firmware version
 
         """
         command = [PrivateConstants.GET_FIRMWARE_VERSION]
-        self._send_command(command)
+
+        await self._send_command(command)
+
         # provide time for the reply
-        time.sleep(.5)
+        await asyncio.sleep(.5)
 
-    def _cpu_temp_message(self, data):
-        """
-        This is a private message handler method.
-        It is a message handler for cpu temperature messages.
-
-        :param data: message data
-
-        """
-
-        temperature = struct.unpack('<f', bytes(data))
-        temperature = round(temperature[0], 2)
-        time_stamp = time.time()
-        # self.digital_pins[pin].event_time = time_stamp
-        if self.cpu_temp_callback:
-            message = [PrivateConstants.CPU_TEMP_REPORT, temperature, time_stamp]
-            self.cpu_temp_callback(message)
-
-    # TBD
-    def i2c_read(self, address, register, number_of_bytes,
-                 callback=None, i2c_port=0, send_stop=True):
+    async def i2c_read(self, address, register, number_of_bytes,
+                       callback=None, i2c_port=0, send_stop=True):
         """
         Read the specified number of bytes from the specified register for
         the i2c device.
@@ -705,14 +508,14 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         if not callback:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('I2C Read: A callback function must be specified.')
 
         # i2c_port = 0 for port 0
         if i2c_port == 0:
             if not self.i2c_0_active:
                 if self.shutdown_on_exception:
-                    self.shutdown()
+                    await self.shutdown()
                 raise RuntimeError(
                     'I2C Read: set_pin_mode_i2c never called for i2c port 0.')
             else:
@@ -722,7 +525,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
             if i2c_port == 1:
                 if not self.i2c_1_active:
                     if self.shutdown_on_exception:
-                        self.shutdown()
+                        await self.shutdown()
                     raise RuntimeError(
                         'I2C READ: set_pin_mode_i2c never called for i2c port 1.')
                 else:
@@ -735,9 +538,9 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         if not register:
             command[3] = PrivateConstants.I2C_NO_REGISTER
 
-        self._send_command(command)
+        await self._send_command(command)
 
-    def i2c_write(self, address, args, i2c_port=0):
+    async def i2c_write(self, address, args, i2c_port=0):
         """
         Write data to an i2c device.
 
@@ -749,25 +552,24 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         :param i2c_port: 0= port 0, 1 = port 1
 
-        
         """
         if not i2c_port:
             if not self.i2c_0_active:
                 if self.shutdown_on_exception:
-                    self.shutdown()
+                    await self.shutdown()
                 raise RuntimeError(
                     'I2C Write: set_pin_mode i2c never called for i2c port 0.')
 
         elif i2c_port:
             if not self.i2c_1_active:
                 if self.shutdown_on_exception:
-                    self.shutdown()
+                    await self.shutdown()
                 raise RuntimeError(
                     'I2C Write: set_pin_mode i2c never called for i2c port 2.')
 
         if type(args) is not list:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('args must be in the form of a list')
 
         command = [PrivateConstants.I2C_WRITE, i2c_port, address, len(args)]
@@ -775,9 +577,9 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         for item in args:
             command.append(item)
 
-        self._send_command(command)
+        await self._send_command(command)
 
-    def neo_pixel_set_value(self, pixel_number, r=0, g=0, b=0, auto_show=False):
+    async def neo_pixel_set_value(self, pixel_number, r=0, g=0, b=0, auto_show=False):
         """
         Set the selected pixel in the pixel array on the Pico to
         the value provided.
@@ -795,27 +597,27 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not self.neopixels_initiated:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('You must call set_pin_mode_neopixel first')
 
         if not 0 <= pixel_number < self.number_of_pixels:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('Pixel number is out of legal range')
 
         for color in [r, g, b]:
             if not 0 <= color <= 255:
                 if self.shutdown_on_exception:
-                    self.shutdown()
+                    await self.shutdown()
                 raise RuntimeError('RGB values must be in the range of 0-255')
 
         command = [PrivateConstants.SET_NEOPIXEL, pixel_number, r, g, b, auto_show]
-        self._send_command(command)
+        await self._send_command(command)
 
         if auto_show:
-            self.neopixel_show()
+            await self.neopixel_show()
 
-    def neopixel_clear(self, auto_show=True):
+    async def neopixel_clear(self, auto_show=True):
         """
         Clear all pixels
 
@@ -824,14 +626,14 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not self.neopixels_initiated:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('You must call set_pin_mode_neopixel first')
         command = [PrivateConstants.CLEAR_NEOPIXELS, auto_show]
-        self._send_command(command)
+        await self._send_command(command)
         if auto_show:
-            self.neopixel_show()
+            await self.neopixel_show()
 
-    def neopixel_fill(self, r=0, g=0, b=0, auto_show=True):
+    async def neopixel_fill(self, r=0, g=0, b=0, auto_show=True):
         """
         Fill all pixels with specified value
 
@@ -845,33 +647,32 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not self.neopixels_initiated:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('You must call set_pin_mode_neopixel first')
-
         for color in [r, g, b]:
             if not 0 <= color <= 255:
                 if self.shutdown_on_exception:
-                    self.shutdown()
+                    await self.shutdown()
                 raise RuntimeError('RGB values must be in the range of 0-255')
         command = [PrivateConstants.FILL_NEOPIXELS, r, g, b, auto_show]
-        self._send_command(command)
+        await self._send_command(command)
 
         if auto_show:
-            self.neopixel_show()
+            await self.neopixel_show()
 
-    def neopixel_show(self):
+    async def neopixel_show(self):
         """
         Write the NeoPixel buffer stored in the Pico to the NeoPixel strip.
 
         """
         if not self.neopixels_initiated:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('You must call set_pin_mode_neopixel first')
         command = [PrivateConstants.SHOW_NEOPIXELS]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def loop_back(self, start_character, callback=None):
+    async def loop_back(self, start_character, callback=None):
         """
         This is a debugging method to send a character to the
         pico device, and have the device loop it back.
@@ -884,13 +685,13 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not callback:
             if self.shutdown_on_exception:
-                self.shutdown()
-            raise RuntimeError('A callback must be specified')
+                await self.shutdown()
+            raise RuntimeError('A callback must be specified.')
         command = [PrivateConstants.LOOP_COMMAND, ord(start_character)]
         self.loop_back_callback = callback
-        self._send_command(command)
+        await self._send_command(command)
 
-    def set_pin_mode_analog_input(self, adc_number, differential=0, callback=None):
+    async def set_pin_mode_analog_input(self, adc_number, differential=0, callback=None):
         """
         Set a pin as an analog input.
 
@@ -901,10 +702,9 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
                            ADC1 = GPIO 27 (Physical Pin 32)
                            ADC2 = GPIO 28 (Physical Pin 34)
 
-                           Internal Mapping
-                           ADC3 = GPIO 29 (Physical Pin 35) ADC Reference Voltage
-                           ADC4 = GPIO 30 (No Physical pin - mapped internally)
-                                          CPU temperature
+
+                           NOTE: This is different from telemetrix-rpi-pico
+                           To get cpu temperature, call get_cpu_temperature.
 
         :param differential: difference in previous to current value before
                              report will be generated
@@ -921,19 +721,71 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not callback:
             if self.shutdown_on_exception:
-                self.shutdown()
-            raise RuntimeError('A callback must be specified')
-
+                await self.shutdown()
+            raise RuntimeError('A callback must be specified.')
         # make sure adc number is in range
-        if not 0 <= adc_number < 5:
+        if not 0 <= adc_number < 4:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
+                await asyncio.sleep(.3)
             raise RuntimeError('Invalid ADC Number')
+        await self._set_pin_mode(adc_number, PrivateConstants.AT_ANALOG, differential,
+                                 callback=callback)
 
-        self._set_pin_mode(adc_number, PrivateConstants.AT_ANALOG, differential,
-                           callback=callback)
+    async def get_cpu_temperature(self, threshold=1.0, polling_interval=1000,
+                                  callback=None):
+        """
+        Request the CPU temperature. This will continuously monitor the temperature
+        and report it back in degrees Celsius. Call only once, unless you wish to
+        modify the polling interval.
 
-    def set_pin_mode_digital_input(self, pin_number, callback=None):
+        :param threshold:    The threshold value is used to determine when a
+        temperature report is to be generated. The current temperature is compared to
+        plus and minus the threshold value and if the value is exceeded, a report is
+        generated. To receive continuous reports, set the threshold to 0. The threshold
+        maximum is 5.0 degrees.
+
+        :param polling_interval: number of milliseconds between temperature reads.
+                                 Maximum of 60 seconds (6000 ms.)
+
+        :param callback: callback function
+
+        callback returns a list:
+        [CPU_TEMPERATURE_REPORT, degrees_celsius, raw_time_stamp]
+
+        CPU_TEMPERATURE_REPORT = 20
+        """
+
+        if not callback:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError('get_cpu_temperature: you must specify a callback')
+        # convert the floating point threshold to bytes
+
+        if 0.0 <= threshold < 30.0:
+            if 0 <= polling_interval < 60000:
+                thresh_list = list(struct.pack("f", threshold))
+                polling_list = polling_interval.to_bytes(2, byteorder='big')
+                self.cpu_temp_callback = callback
+
+                self.cpu_temp_active = True
+
+                command = [PrivateConstants.GET_CPU_TEMPERATURE, thresh_list[0],
+                           thresh_list[1],
+                           thresh_list[2], thresh_list[3], polling_list[0],
+                           polling_list[1]]
+
+                await self._send_command(command)
+            else:
+                if self.shutdown_on_exception:
+                    await self.shutdown()
+                raise RuntimeError('get_cpu_temperature: polling interval out of range.')
+        else:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError('get_cpu_temperature: threshold out of range.')
+
+    async def set_pin_mode_digital_input(self, pin_number, callback=None):
         """
         Set a pin as a digital input.
 
@@ -951,12 +803,12 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not callback:
             if self.shutdown_on_exception:
-                self.shutdown()
-            raise RuntimeError('A callback must be specified')
+                await self.shutdown()
+            raise RuntimeError('A callback must be specified.')
 
-        self._set_pin_mode(pin_number, PrivateConstants.AT_INPUT, callback=callback)
+        await self._set_pin_mode(pin_number, PrivateConstants.AT_INPUT, callback=callback)
 
-    def set_pin_mode_digital_input_pullup(self, pin_number, callback=None):
+    async def set_pin_mode_digital_input_pullup(self, pin_number, callback=None):
         """
         Set a pin as a digital input with pullup enabled.
 
@@ -974,13 +826,13 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not callback:
             if self.shutdown_on_exception:
-                self.shutdown()
-            raise RuntimeError('A callback must be specified')
+                await self.shutdown()
+            raise RuntimeError('A callback must be specified.')
 
-        self._set_pin_mode(pin_number, PrivateConstants.AT_INPUT_PULLUP,
-                           callback=callback)
+        await self._set_pin_mode(pin_number, PrivateConstants.AT_INPUT_PULLUP,
+                                 callback=callback)
 
-    def set_pin_mode_digital_input_pull_down(self, pin_number, callback=None):
+    async def set_pin_mode_digital_input_pull_down(self, pin_number, callback=None):
         """
         Set a pin as a digital input with pull down enabled.
 
@@ -998,23 +850,23 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not callback:
             if self.shutdown_on_exception:
-                self.shutdown()
-            raise RuntimeError('A callback must be specified')
+                await self.shutdown()
+            raise RuntimeError('A callback must be specified.')
 
-        self._set_pin_mode(pin_number, PrivateConstants.AT_INPUT_PULL_DOWN,
-                           callback=callback)
+        await self._set_pin_mode(pin_number, PrivateConstants.AT_INPUT_PULL_DOWN,
+                                 callback=callback)
 
-    def set_pin_mode_digital_output(self, pin_number):
+    async def set_pin_mode_digital_output(self, pin_number):
         """
         Set a pin as a digital output pin.
 
         :param pin_number: pico GPIO pin number
         """
 
-        self._set_pin_mode(pin_number, PrivateConstants.AT_OUTPUT)
+        await self._set_pin_mode(pin_number, PrivateConstants.AT_OUTPUT)
 
-    def set_pin_mode_neopixel(self, pin_number=28, num_pixels=8,
-                              fill_r=0, fill_g=0, fill_b=0):
+    async def set_pin_mode_neopixel(self, pin_number=28, num_pixels=8,
+                                    fill_r=0, fill_g=0, fill_b=0):
         """
         Initialize the pico for NeoPixel control. Fill with rgb values specified.
 
@@ -1035,7 +887,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         for color in [fill_r, fill_g, fill_b]:
             if not 0 <= color <= 255:
                 if self.shutdown_on_exception:
-                    self.shutdown()
+                    await self.shutdown()
                 raise RuntimeError('RGB values must be in the range of 0-255')
 
         self.number_of_pixels = num_pixels
@@ -1043,20 +895,18 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         command = [PrivateConstants.INIT_NEOPIXELS, pin_number,
                    self.number_of_pixels, fill_r, fill_g, fill_b]
 
-        self._send_command(command)
+        await self._send_command(command)
 
         self.pico_pins[pin_number] = PrivateConstants.AT_NEO_PIXEL
 
         self.neopixels_initiated = True
 
-    def set_pin_mode_pwm_output(self, pin_number):
+    async def set_pin_mode_pwm_output(self, pin_number):
         """
         Enable a pin as a PWM pin. Maximum number of PWMs is 16.
-        The frequency is fixed at 50 hz.
 
         Note: There are up to 16 pins that can be assigned as
         PWM. Servo pins share the 16 PWM pins.
-
 
         :param pin_number: pico GPIO pin number
 
@@ -1066,19 +916,19 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
             self.pico_pins[pin_number] = PrivateConstants.AT_PWM_OUTPUT
             if self.pwm_active_count >= 15:
                 if self.shutdown_on_exception:
-                    self.shutdown()
+                    await self.shutdown()
                 raise RuntimeError(
                     'pwm or servo set mode: number of active PWM pins is at maximum')
 
             self.pwm_active_count += 1
 
-            self._set_pin_mode(pin_number, PrivateConstants.AT_PWM_OUTPUT)
+            await self._set_pin_mode(pin_number, PrivateConstants.AT_PWM_OUTPUT)
         else:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('Gpio Pin Number is invalid')
 
-    def set_pin_mode_i2c(self, i2c_port=0, sda_gpio=None, scl_gpio=None):
+    async def set_pin_mode_i2c(self, i2c_port=0, sda_gpio=None, scl_gpio=None):
         """
         Establish the standard pico i2c pins for i2c utilization.
 
@@ -1100,10 +950,11 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
               See i2c_read, and i2c_write
 
         """
+
         # determine if the i2c port is specified correctly
         if i2c_port not in [0, 1]:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('i2c port must be either a 0 or 1')
         if sda_gpio or scl_gpio:
             if i2c_port == 0:
@@ -1114,7 +965,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
                     warnings.warn('SDA = 26, and SCL = 27. Ignoring pins specified')
 
         # test for i2c port 0
-        if i2c_port == 0:
+        if not i2c_port:
             self.i2c_0_active = True
             sda_gpio = 4
             scl_gpio = 5
@@ -1127,9 +978,9 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         self.pico_pins[sda_gpio] = self.pico_pins[scl_gpio] = PrivateConstants.AT_I2C
 
         command = [PrivateConstants.I2C_BEGIN, i2c_port]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def set_pin_mode_dht(self, pin, callback=None):
+    async def set_pin_mode_dht(self, pin, callback=None):
         """
 
       :param pin: connection pin
@@ -1138,7 +989,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
       callback returns a data list:
 
-        [DHT REPORT, DHT_DATA=1, PIN, Humidity,  Temperature (c),Time]
+    [DHT REPORT, DHT_DATA=1, PIN, Humidity,  Temperature (c),Time]
 
     DHT_REPORT =  12
 
@@ -1146,7 +997,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         if not callback:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('set_pin_mode_dht: A Callback must be specified')
 
         if self.dht_count < PrivateConstants.MAX_DHTS:
@@ -1154,20 +1005,18 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
             self.dht_count += 1
             self.pico_pins[pin] = PrivateConstants.AT_DHT
             command = [PrivateConstants.DHT_NEW, pin]
-            self._send_command(command)
+            await self._send_command(command)
         else:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError(
                 f'Maximum Number Of DHTs Exceeded - set_pin_mode_dht fails for pin {pin}')
 
-    # noinspection PyRedundantParentheses
-    def set_pin_mode_servo(self, pin_number, min_pulse=1000, max_pulse=2000):
+    async def set_pin_mode_servo(self, pin_number, min_pulse=1000, max_pulse=2000):
         """
 
         Attach a pin to a servo motor
 
-        Servo mode is a specialized version of PWM Output mode.
         There are 16 PWM pins shared between the Servo and PWM Output modes.
 
         :param pin_number: pin
@@ -1181,16 +1030,19 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         if pin_number in self.pico_pins:
             self.pico_pins[pin_number] = PrivateConstants.AT_PWM_OUTPUT
             if self.pwm_active_count >= 15:
+                if self.shutdown_on_exception:
+                    await self.shutdown()
                 raise RuntimeError(
                     'pwm or servo set mode: number of active PWM pins is at maximum')
 
             self.pwm_active_count += 1
 
-        self._set_pin_mode(pin_number, PrivateConstants.AT_SERVO, min_pulse, max_pulse)
+        await self._set_pin_mode(pin_number, PrivateConstants.AT_SERVO, min_pulse,
+                                 max_pulse)
         self.pico_pins[pin_number] = PrivateConstants.AT_SERVO
 
-    def set_pin_mode_spi(self, spi_port=0, chip_select=None, speed_maximum=500000,
-                         data_order=1, data_mode=0):
+    async def set_pin_mode_spi(self, spi_port=0, chip_select=None, speed_maximum=500000,
+                               data_order=1, data_mode=0):
 
         """
         Specify the SPI port. The SPI port is configured as a "master".
@@ -1214,11 +1066,11 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         :param data_mode: 0=MODE0, 1=MODE1, 2=MODE2 3=MODE3
 
-        miso: SPI data receive pin  spi0 = 16  spi1 = 12
+        miso: SPI data receive pin   spi0 = 16  spi1 = 12
 
-        mosi: SPI data transmit pi  spi0 = 19  spi1 = 15
+        mosi: SPI data transmit pin  spi0 = 19  spi1 = 15
 
-        clock_pin: clock pin        spi0 = 18  spi1 = 14
+        clock_pin: clock pin         spi0 = 18  spi1 = 14
 
 
         command message: [command, spi, chip_select, speed, data_order, data_mode]
@@ -1226,22 +1078,22 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         # determine if the spi port is specified correctly
         if spi_port not in [0, 1]:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('spi port must be either a 0 or 1')
 
         if not (0 < speed_maximum < 50000000):
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('spi port speed maximum is out of range')
 
         if data_order not in [0, 1]:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('spi data order must be 0 or 1')
 
         if data_mode not in [0, 1, 2, 3]:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('spi data data mode must be 0, 1, 3 or 3')
 
         if spi_port == 0:
@@ -1273,10 +1125,10 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         command = [PrivateConstants.SPI_INIT, spi_port, chip_select, freq_bytes[0],
                    freq_bytes[1], freq_bytes[2], freq_bytes[3], data_order, data_mode]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def set_pin_mode_stepper(self, interface=1, pin1=2, pin2=3, pin3=4,
-                             pin4=5, enable=True):
+    async def set_pin_mode_stepper(self, interface=1, pin1=2, pin2=3, pin3=4,
+                                   pin4=5, enable=True):
         """
         Stepper motor support is implemented as a proxy for
         the AccelStepper library.
@@ -1319,12 +1171,12 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         if self.number_of_steppers == self.max_number_of_steppers:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('Maximum number of steppers has already been assigned')
 
         if interface not in self.valid_stepper_interfaces:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('Invalid stepper interface')
 
         self.number_of_steppers += 1
@@ -1336,12 +1188,12 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         # build message and send message to server
         command = [PrivateConstants.SET_PIN_MODE_STEPPER, motor_id, interface, pin1,
                    pin2, pin3, pin4, enable]
-        self._send_command(command)
+        await self._send_command(command)
 
         # return motor id
         return motor_id
 
-    def servo_write(self, pin_number, value):
+    async def servo_write(self, pin_number, value):
         """
         Write the value to the specified servo
 
@@ -1353,7 +1205,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         if self.pico_pins[pin_number] != PrivateConstants.AT_SERVO:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('You must call set_pin_mode_servo before trying to '
                                'write a value to a servo or servo was detached.')
 
@@ -1366,9 +1218,9 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         command = [PrivateConstants.SERVO_WRITE, pin_number, value, mm[0], mm[1],
                    mx[0], mx[1]]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def set_pin_mode_sonar(self, trigger_pin, echo_pin, callback=None):
+    async def set_pin_mode_sonar(self, trigger_pin, echo_pin, callback=None):
         """
         :param trigger_pin:  Sensor trigger gpio pin
 
@@ -1386,7 +1238,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         if not callback:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('set_pin_mode_sonar: A Callback must be specified')
 
         if self.sonar_count < PrivateConstants.MAX_SONARS:
@@ -1396,13 +1248,14 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
                 PrivateConstants.AT_SONAR
 
             command = [PrivateConstants.SONAR_NEW, trigger_pin, echo_pin]
-            self._send_command(command)
+            await self._send_command(command)
         else:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('Maximum number of supported sonar devices exceeded.')
 
-    def spi_read_blocking(self, register, number_of_bytes, spi_port=0, call_back=None):
+    async def spi_read_blocking(self, register, number_of_bytes, spi_port=0,
+                                call_back=None):
         """
         Read the specified number of bytes from the specified SPI port and
         call the callback function with the reported data.
@@ -1419,6 +1272,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         :param call_back: Required callback function to report spi data as a
                    result of read command
 
+
         callback returns a data list:
         [SPI_READ_REPORT, spi_port, count of data bytes, data bytes, time-stamp]
 
@@ -1428,20 +1282,20 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         if spi_port == 0:
             if not self.spi_0_active:
                 if self.shutdown_on_exception:
-                    self.shutdown()
+                    await self.shutdown()
                 raise RuntimeError(
                     'spi_read_blocking: set_pin_mode_spi never called for spi port 0.')
 
         elif spi_port == 1:
             if not self.spi_1_active:
                 if self.shutdown_on_exception:
-                    self.shutdown()
+                    await self.shutdown()
                 raise RuntimeError(
                     'spi_read_blocking: set_pin_mode_spi never called for spi port 1.')
 
         if not call_back:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('spi_read_blocking: A Callback must be specified')
         if spi_port == 0:
             self.spi_callback = call_back
@@ -1450,9 +1304,9 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         command = [PrivateConstants.SPI_READ_BLOCKING, spi_port, register,
                    number_of_bytes]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def spi_write_blocking(self, bytes_to_write, spi_port=0):
+    async def spi_write_blocking(self, bytes_to_write, spi_port=0):
         """
         Write a list of bytes to the SPI device.
 
@@ -1468,14 +1322,14 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         if spi_port == 0:
             if not self.spi_0_active:
                 if self.shutdown_on_exception:
-                    self.shutdown()
+                    await self.shutdown()
                 raise RuntimeError(
                     'spi_write_blocking: set_pin_mode_spi never called for spi port 0.')
 
         elif spi_port:
             if not self.spi_1_active:
                 if self.shutdown_on_exception:
-                    self.shutdown()
+                    await self.shutdown()
                 raise RuntimeError(
                     'spi_write_blocking: set_pin_mode_spi never called for spi port 1.')
         command = [PrivateConstants.SPI_WRITE_BLOCKING, spi_port,
@@ -1484,9 +1338,9 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         for data in bytes_to_write:
             command.append(data)
 
-        self._send_command(command)
+        await self._send_command(command)
 
-    def get_pico_pins(self):
+    async def get_pico_pins(self):
         """
         This method returns the pico_pins dictionary
 
@@ -1520,7 +1374,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         return self.pico_pins
 
-    def stepper_move_to(self, motor_id, position):
+    async def stepper_move_to(self, motor_id, position):
         """
         Set an absolution target position. If position is positive, the movement is
         clockwise, else it is counter-clockwise.
@@ -1543,7 +1397,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         position = abs(position)
         if not self.stepper_info_list[motor_id]['instance']:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_move_to: Invalid motor_id.')
 
         position_bytes = list(position.to_bytes(4, 'big', signed=True))
@@ -1552,9 +1406,9 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         for value in position_bytes:
             command.append(value)
         command.append(polarity)
-        self._send_command(command)
+        await self._send_command(command)
 
-    def stepper_move(self, motor_id, relative_position):
+    async def stepper_move(self, motor_id, relative_position):
         """
         Set the target position relative to the current position.
 
@@ -1572,7 +1426,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         relative_position = abs(relative_position)
         if not self.stepper_info_list[motor_id]['instance']:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_move: Invalid motor_id.')
 
         position_bytes = list(relative_position.to_bytes(4, 'big', signed=True))
@@ -1581,9 +1435,9 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         for value in position_bytes:
             command.append(value)
         command.append(polarity)
-        self._send_command(command)
+        await self._send_command(command)
 
-    def stepper_run(self, motor_id, completion_callback=None):
+    async def stepper_run(self, motor_id, completion_callback=None):
         """
         This method steps the selected motor based on the current speed.
 
@@ -1602,20 +1456,20 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not completion_callback:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_run: A motion complete callback must be '
                                'specified.')
 
         if not self.stepper_info_list[motor_id]['instance']:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_run: Invalid motor_id.')
 
         self.stepper_info_list[motor_id]['motion_complete_callback'] = completion_callback
         command = [PrivateConstants.STEPPER_RUN, motor_id]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def stepper_run_speed(self, motor_id):
+    async def stepper_run_speed(self, motor_id):
         """
         This method steps the selected motor based at a constant speed as set by the most
         recent call to stepper_set_max_speed(). The motor will run continuously.
@@ -1627,13 +1481,13 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not self.stepper_info_list[motor_id]['instance']:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_run_speed: Invalid motor_id.')
 
         command = [PrivateConstants.STEPPER_RUN_SPEED, motor_id]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def stepper_set_max_speed(self, motor_id, max_speed):
+    async def stepper_set_max_speed(self, motor_id, max_speed):
         """
         Sets the maximum permitted speed. The stepper_run() function will accelerate
         up to the speed set by this function.
@@ -1651,12 +1505,12 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         if not self.stepper_info_list[motor_id]['instance']:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_set_max_speed: Invalid motor_id.')
 
         if not 1 < max_speed <= 1000:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_set_max_speed: Speed range is 1 - 1000.')
 
         self.stepper_info_list[motor_id]['max_speed'] = max_speed
@@ -1665,9 +1519,9 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         command = [PrivateConstants.STEPPER_SET_MAX_SPEED, motor_id, max_speed_msb,
                    max_speed_lsb]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def stepper_get_max_speed(self, motor_id):
+    async def stepper_get_max_speed(self, motor_id):
         """
         Returns the maximum speed configured for this stepper
         that was previously set by stepper_set_max_speed()
@@ -1680,12 +1534,12 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not self.stepper_info_list[motor_id]['instance']:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_max_speed: Invalid motor_id.')
 
         return self.stepper_info_list[motor_id]['max_speed']
 
-    def stepper_set_acceleration(self, motor_id, acceleration):
+    async def stepper_set_acceleration(self, motor_id, acceleration):
         """
         Sets the acceleration/deceleration rate.
 
@@ -1700,12 +1554,12 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not self.stepper_info_list[motor_id]['instance']:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_set_acceleration: Invalid motor_id.')
 
         if not 1 < acceleration <= 1000:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_set_acceleration: Acceleration range is 1 - '
                                '1000.')
 
@@ -1716,9 +1570,9 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         command = [PrivateConstants.STEPPER_SET_ACCELERATION, motor_id, max_accel_msb,
                    max_accel_lsb]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def stepper_set_speed(self, motor_id, speed):
+    async def stepper_set_speed(self, motor_id, speed):
         """
         Sets the desired constant speed for use with stepper_run_speed().
 
@@ -1734,12 +1588,12 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not self.stepper_info_list[motor_id]['instance']:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_set_speed: Invalid motor_id.')
 
         if not 0 < speed <= 1000:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_set_speed: Speed range is 0 - '
                                '1000.')
 
@@ -1749,9 +1603,9 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         speed_lsb = speed & 0xff
 
         command = [PrivateConstants.STEPPER_SET_SPEED, motor_id, speed_msb, speed_lsb]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def stepper_get_speed(self, motor_id):
+    async def stepper_get_speed(self, motor_id):
         """
         Returns the  most recently set speed.
         that was previously set by stepper_set_speed();
@@ -1763,12 +1617,12 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not self.stepper_info_list[motor_id]['instance']:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_get_speed: Invalid motor_id.')
 
         return self.stepper_info_list[motor_id]['speed']
 
-    def stepper_get_distance_to_go(self, motor_id, distance_to_go_callback):
+    async def stepper_get_distance_to_go(self, motor_id, distance_to_go_callback):
         """
         Request the distance from the current position to the target position
         from the server.
@@ -1786,20 +1640,20 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not distance_to_go_callback:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError(
                 'stepper_get_distance_to_go Read: A callback function must be specified.')
 
         if not self.stepper_info_list[motor_id]['instance']:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_get_distance_to_go: Invalid motor_id.')
         self.stepper_info_list[motor_id][
             'distance_to_go_callback'] = distance_to_go_callback
         command = [PrivateConstants.STEPPER_GET_DISTANCE_TO_GO, motor_id]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def stepper_get_target_position(self, motor_id, target_callback):
+    async def stepper_get_target_position(self, motor_id, target_callback):
         """
         Request the most recently set target position from the server.
 
@@ -1816,22 +1670,22 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not target_callback:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError(
                 'stepper_get_target_position Read: A callback function must be specified.')
 
         if not self.stepper_info_list[motor_id]['instance']:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_get_target_position: Invalid motor_id.')
 
         self.stepper_info_list[motor_id][
             'target_position_callback'] = target_callback
 
         command = [PrivateConstants.STEPPER_GET_TARGET_POSITION, motor_id]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def stepper_get_current_position(self, motor_id, current_position_callback):
+    async def stepper_get_current_position(self, motor_id, current_position_callback):
         """
         Request the current motor position from the server.
 
@@ -1847,22 +1701,22 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not current_position_callback:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError(
                 'stepper_get_current_position Read: A callback function must be specified.')
 
         if not self.stepper_info_list[motor_id]['instance']:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_get_current_position: Invalid motor_id.')
 
         self.stepper_info_list[motor_id][
             'current_position_callback'] = current_position_callback
 
         command = [PrivateConstants.STEPPER_GET_CURRENT_POSITION, motor_id]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def stepper_set_current_position(self, motor_id, position):
+    async def stepper_set_current_position(self, motor_id, position):
         """
         Resets the current position of the motor, so that wherever the motor
         happens to be right now is considered to be the new 0 position. Useful
@@ -1878,16 +1732,16 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         if not self.stepper_info_list[motor_id]['instance']:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_set_current_position: Invalid motor_id.')
         position_bytes = list(position.to_bytes(4, 'big', signed=True))
 
         command = [PrivateConstants.STEPPER_SET_CURRENT_POSITION, motor_id]
         for value in position_bytes:
             command.append(value)
-        self._send_command(command)
+        await self._send_command(command)
 
-    def stepper_run_speed_to_position(self, motor_id, completion_callback=None):
+    async def stepper_run_speed_to_position(self, motor_id, completion_callback=None):
         """
         Runs the motor at the currently selected speed until the target position is
         reached.
@@ -1907,20 +1761,20 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not completion_callback:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_run_speed_to_position: A motion complete '
                                'callback must be '
                                'specified.')
         if not self.stepper_info_list[motor_id]['instance']:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_run_speed_to_position: Invalid motor_id.')
 
         self.stepper_info_list[motor_id]['motion_complete_callback'] = completion_callback
         command = [PrivateConstants.STEPPER_RUN_SPEED_TO_POSITION, motor_id]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def stepper_stop(self, motor_id):
+    async def stepper_stop(self, motor_id):
         """
         Sets a new target position that causes the stepper
         to stop as quickly as possible, using the current speed and
@@ -1930,13 +1784,13 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not self.stepper_info_list[motor_id]['instance']:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_stop: Invalid motor_id.')
 
         command = [PrivateConstants.STEPPER_STOP, motor_id]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def stepper_disable_outputs(self, motor_id):
+    async def stepper_disable_outputs(self, motor_id):
         """
         Disable motor pin outputs by setting them all LOW.
 
@@ -1954,13 +1808,13 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not self.stepper_info_list[motor_id]['instance']:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_disable_outputs: Invalid motor_id.')
 
         command = [PrivateConstants.STEPPER_DISABLE_OUTPUTS, motor_id]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def stepper_enable_outputs(self, motor_id):
+    async def stepper_enable_outputs(self, motor_id):
         """
         Enable motor pin outputs by setting the motor pins to OUTPUT
         mode.
@@ -1972,13 +1826,13 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not self.stepper_info_list[motor_id]['instance']:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_enable_outputs: Invalid motor_id.')
 
         command = [PrivateConstants.STEPPER_ENABLE_OUTPUTS, motor_id]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def stepper_set_min_pulse_width(self, motor_id, minimum_width):
+    async def stepper_set_min_pulse_width(self, motor_id, minimum_width):
         """
         Sets the minimum pulse width allowed by the stepper driver.
 
@@ -1992,12 +1846,12 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not self.stepper_info_list[motor_id]['instance']:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_set_min_pulse_width: Invalid motor_id.')
 
         if not 0 < minimum_width <= 0xff:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_set_min_pulse_width: Pulse width range = '
                                '0-0xffff.')
 
@@ -2006,9 +1860,9 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         command = [PrivateConstants.STEPPER_SET_MINIMUM_PULSE_WIDTH, motor_id, width_msb,
                    width_lsb]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def stepper_set_enable_pin(self, motor_id, pin=0xff):
+    async def stepper_set_enable_pin(self, motor_id, pin=0xff):
         """
         Sets the enable-pin number for stepper drivers.
         0xFF indicates unused (default).
@@ -2022,20 +1876,20 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not self.stepper_info_list[motor_id]['instance']:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_set_enable_pin: Invalid motor_id.')
 
         if not 0 < pin <= 0xff:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_set_enable_pin: Pulse width range = '
                                '0-0xff.')
         command = [PrivateConstants.STEPPER_SET_ENABLE_PIN, motor_id, pin]
 
-        self._send_command(command)
+        await self._send_command(command)
 
-    def stepper_set_3_pins_inverted(self, motor_id, direction=False, step=False,
-                                    enable=False):
+    async def stepper_set_3_pins_inverted(self, motor_id, direction=False, step=False,
+                                          enable=False):
         """
         Sets the inversion for stepper driver pins.
 
@@ -2049,16 +1903,18 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not self.stepper_info_list[motor_id]['instance']:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_set_3_pins_inverted: Invalid motor_id.')
 
         command = [PrivateConstants.STEPPER_SET_3_PINS_INVERTED, motor_id, direction,
                    step, enable]
 
-        self._send_command(command)
+        await self._send_command(command)
 
-    def stepper_set_4_pins_inverted(self, motor_id, pin1_invert=False, pin2_invert=False,
-                                    pin3_invert=False, pin4_invert=False, enable=False):
+    async def stepper_set_4_pins_inverted(self, motor_id, pin1_invert=False,
+                                          pin2_invert=False,
+                                          pin3_invert=False, pin4_invert=False,
+                                          enable=False):
         """
         Sets the inversion for 2, 3 and 4 wire stepper pins
 
@@ -2076,15 +1932,15 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not self.stepper_info_list[motor_id]['instance']:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_set_4_pins_inverted: Invalid motor_id.')
 
         command = [PrivateConstants.STEPPER_SET_4_PINS_INVERTED, motor_id, pin1_invert,
                    pin2_invert, pin3_invert, pin4_invert, enable]
 
-        self._send_command(command)
+        await self._send_command(command)
 
-    def stepper_is_running(self, motor_id, callback):
+    async def stepper_is_running(self, motor_id, callback):
         """
         Checks to see if the motor is currently running to a target.
 
@@ -2100,22 +1956,22 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         if not callback:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError(
                 'stepper_is_running: A callback function must be specified.')
 
         if not self.stepper_info_list[motor_id]['instance']:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('stepper_is_running: Invalid motor_id.')
 
         self.stepper_info_list[motor_id]['is_running_callback'] = callback
 
         command = [PrivateConstants.STEPPER_IS_RUNNING, motor_id]
-        self._send_command(command)
+        await self._send_command(command)
 
-    def _set_pin_mode(self, pin_number, pin_state, differential=0, value_range=0,
-                      callback=None):
+    async def _set_pin_mode(self, pin_number, pin_state, differential=0, value_range=0,
+                            callback=None):
 
         """
         A private method to set the various pin modes.
@@ -2145,7 +2001,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
                 self.pico_pins[pin_number] = pin_state
             else:
                 if self.shutdown_on_exception:
-                    self.shutdown()
+                    await self.shutdown()
                 raise RuntimeError('Gpio Pin Number is invalid')
 
         if callback:
@@ -2201,7 +2057,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         else:
             if self.shutdown_on_exception:
-                self.shutdown()
+                await self.shutdown()
             raise RuntimeError('Unknown pin state')
 
         if pin_state == PrivateConstants.AT_ANALOG:
@@ -2209,53 +2065,51 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
                 self.pico_pins[26] = PrivateConstants.AT_ANALOG
             elif pin_number == 1:
                 self.pico_pins[27] = PrivateConstants.AT_ANALOG
-            elif pin_number == 2:
+            elif pin_number == 13:
                 self.pico_pins[28] = PrivateConstants.AT_ANALOG
 
         else:
             self.pico_pins[pin_number] = pin_state
 
         if command:
-            self._send_command(command)
+            await self._send_command(command)
 
-    def shutdown(self):
+    async def shutdown(self):
         """
         This method attempts to perform an orderly shutdown.
         If any exceptions are thrown, they are ignored.
         """
-
         self.shutdown_flag = True
-
-        self._stop_threads()
-        if self.serial_port is None:
-            raise RuntimeError('Shutdown aborted - no serial port')
 
         try:
             command = [PrivateConstants.STOP_ALL_REPORTS]
-            self._send_command(command)
-            time.sleep(.1)
+            await self._send_command(command)
+            await asyncio.sleep(.1)
 
-            if self.reset_on_shutdown:
-                command = [PrivateConstants.RESET_BOARD, self.reset_on_shutdown]
-                self._send_command(command)
+            if self.reset_board_on_shutdown:
+                command = [PrivateConstants.RESET_BOARD, self.reset_board_on_shutdown]
+                await self._send_command(command)
 
-            # time.sleep(.2)
-            # try:
-            #     self.sock.shutdown(socket.SHUT_RDWR)
-            #     self.sock.close()
-            # except Exception:
-            #     pass
+            await asyncio.sleep(1)
+            try:
+                self.sock.shutdown(socket.SHUT_RDWR)
+                self.sock.close()
+            except Exception:
+                pass
+
+            self.the_task.cancel()
+            await asyncio.sleep(.5)
+            if self.close_loop_on_shutdown:
+                self.loop.stop()
 
         except Exception:
-            # raise RuntimeError('Shutdown failed - could not send stop streaming
-            pass
-    # message')
+            raise RuntimeError('Shutdown failed - could not send stop streaming message')
 
     '''
     report message handlers
     '''
 
-    def _analog_message(self, data):
+    async def _analog_message(self, data):
         """
         This is a private message handler method.
         It is a message handler for analog messages.
@@ -2270,11 +2124,29 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         # self.digital_pins[pin].event_time = time_stamp
         if self.analog_callbacks[pin]:
             message = [PrivateConstants.ANALOG_REPORT, pin, value, time_stamp]
-            self.analog_callbacks[pin](message)
+            await self.analog_callbacks[pin](message)
 
-
-    def _dht_report(self, report):
+    async def _cpu_temp_message(self, data):
         """
+        This is a private message handler method.
+        It is a message handler for cpu temperature messages.
+
+        :param data: message data
+
+        """
+
+        temperature = struct.unpack('<f', bytes(data))
+        temperature = round(temperature[0], 2)
+        time_stamp = time.time()
+        # self.digital_pins[pin].event_time = time_stamp
+        if self.cpu_temp_callback:
+            message = [PrivateConstants.CPU_TEMP_REPORT, temperature, time_stamp]
+            await self.cpu_temp_callback(message)
+
+    async def _dht_report(self, report):
+        """
+        This is a private utility method.
+
         This is the dht report handler method.
 
         :param report:
@@ -2302,15 +2174,16 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
                data[7] = temperature fractional value
 
 
-                """
-        if report[0] != 0:  # DHT_ERROR
+        """
+        message = []
+        if report[0]:  # DHT_ERROR
             # error report
             # data[0] = report sub type, data[1] = pin, data[2] = error message
             if self.dht_callbacks[report[1]]:
                 # Callback 0=DHT REPORT, DHT_ERROR, PIN, Time
-                message = [PrivateConstants.DHT_REPORT, report[0], report[1],
+                message = [PrivateConstants.DHT_REPORT, report[0], report[1], report[2],
                            time.time()]
-                self.dht_callbacks[report[1]](message)
+            await self.dht_callbacks[report[1]](message)
         else:
             # got valid data DHT_DATA
             f_humidity = float(report[4] + report[5] / 100)
@@ -2319,16 +2192,12 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
             f_temperature = float(report[6] + report[7] / 100)
             if report[3]:
                 f_temperature *= -1.0
-            message = [PrivateConstants.DHT_REPORT, report[0], report[1],
+            message = [PrivateConstants.DHT_REPORT,  report[1],
                        f_humidity, f_temperature, time.time()]
 
-            try:
-                self.dht_callbacks[report[1]](message)
-                time.sleep(.3)
-            except KeyError:
-                print('a')
+            await self.dht_callbacks[report[1]](message)
 
-    def _digital_message(self, data):
+    async def _digital_message(self, data):
         """
         This is a private message handler method.
         It is a message handler for Digital Messages.
@@ -2342,9 +2211,9 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         time_stamp = time.time()
         if self.digital_callbacks[pin]:
             message = [PrivateConstants.DIGITAL_REPORT, pin, value, time_stamp]
-            self.digital_callbacks[pin](message)
+            await self.digital_callbacks[pin](message)
 
-    def _firmware_message(self, data):
+    async def _firmware_message(self, data):
         """
         Telemetrix4pico firmware version message
         :param data: data[0] = major number, data[1] = minor number
@@ -2352,7 +2221,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         self.firmware_version = [data[0], data[1], data[2]]
 
-    def _i2c_read_report(self, data):
+    async def _i2c_read_report(self, data):
         """
         Execute callback for i2c reads.
 
@@ -2365,33 +2234,33 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         cb_list.append(time.time())
 
         if cb_list[1]:
-            self.i2c_callback2(cb_list)
+            await self.i2c_callback2(cb_list)
         else:
-            self.i2c_callback(cb_list)
+            await self.i2c_callback(cb_list)
 
-    def _i2c_too_few_bytes_received(self, data):
+    async def _i2c_too_few_bytes_received(self, data):
         """
         I2c write attempt failed
 
         :param data: data[0] = i2c_device
         """
-        print(f'i2c Too few bytes received for I2C port {data[0]}')
         if self.shutdown_on_exception:
-            self.shutdown()
-        # raise RuntimeError(f'i2c Too few bytes received for I2C port {data[0]}')
+            await self.shutdown()
+        raise RuntimeError(
+            f'i2c Too few bytes received for I2C port {data[0]}')
 
-    def _i2c_too_many_bytes_received(self, data):
+    async def _i2c_too_many_bytes_received(self, data):
         """
         I2c read failed
 
         :param data: data[0] = i2c device
         """
         if self.shutdown_on_exception:
-            self.shutdown()
+            await self.shutdown()
         raise RuntimeError(
             f'i2c too many bytes received for I2C port {data[0]}')
 
-    def _report_unique_id(self, data):
+    async def _report_unique_id(self, data):
         """
         Reply to are_u_there message
         :param data: pico id
@@ -2400,7 +2269,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         for i in range(len(data)):
             self.reported_pico_id.append(data[i])
 
-    def _report_debug_data(self, data):
+    async def _report_debug_data(self, data):
         """
         Print debug data sent from pico
         :param data: data[0] is a byte followed by 2
@@ -2410,14 +2279,14 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         value = (data[1] << 8) + data[2]
         print(f'DEBUG ID: {data[0]} Value: {value}')
 
-    def _report_loop_data(self, data):
+    async def _report_loop_data(self, data):
         """
         Print data that was looped back
         :param data: byte of loop back data
         :return:
         """
         if self.loop_back_callback:
-            self.loop_back_callback(data)
+            await self.loop_back_callback(data)
 
     # onewire is not available for the pico
     # def _onewire_report(self, report):
@@ -2425,7 +2294,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
     #     cb_list.append(time.time())
     #     self.onewire_callback(cb_list)
 
-    def _stepper_distance_to_go_report(self, report):
+    async def _stepper_distance_to_go_report(self, report):
         """
         Report stepper distance to go.
 
@@ -2450,7 +2319,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         cb(cb_list)
 
-    def _stepper_target_position_report(self, report):
+    async def _stepper_target_position_report(self, report):
         """
         Report stepper target position to go.
 
@@ -2477,7 +2346,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         cb(cb_list)
 
-    def _stepper_current_position_report(self, report):
+    async def _stepper_current_position_report(self, report):
         """
         Report stepper current position.
 
@@ -2504,7 +2373,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         cb(cb_list)
 
-    def _stepper_is_running_report(self, report):
+    async def _stepper_is_running_report(self, report):
         """
         Report if the motor is currently running
 
@@ -2519,9 +2388,9 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         cb_list = [PrivateConstants.STEPPER_RUNNING_REPORT, report[0], time.time()]
 
-        cb(cb_list)
+        await cb(cb_list)
 
-    def _stepper_run_complete_report(self, report):
+    async def _stepper_run_complete_report(self, report):
         """
         The motor completed it motion
 
@@ -2537,12 +2406,12 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         cb_list = [PrivateConstants.STEPPER_RUN_COMPLETE_REPORT, report[0],
                    time.time()]
 
-        cb(cb_list)
+        await cb(cb_list)
 
-    def _features_report(self, report):
+    async def _features_report(self, report):
         self.reported_features = report[0]
 
-    def _send_command(self, command):
+    async def _send_command(self, command):
         """
         This is a private utility method.
 
@@ -2552,29 +2421,22 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         """
         # the length of the list is added at the head
         command.insert(0, len(command))
-        # print(command)
+
         send_message = bytes(command)
 
-        if self.serial_port:
-            try:
-                self.serial_port.write(send_message)
-            except SerialException:
-                if self.shutdown_on_exception:
-                    self.shutdown()
-                raise RuntimeError('write fail in _send_command')
+        await self.sock.write(send_message)
 
-    # TBD
-    def _servo_unavailable(self, report):
+    async def _servo_unavailable(self, report):
         """
         Message if no servos are available for use.
         :param report: pin number
         """
         if self.shutdown_on_exception:
-            self.shutdown()
+            await self.shutdown()
         raise RuntimeError(
             f'Servo Attach For Pin {report[0]} Failed: No Available Servos')
 
-    def _sonar_distance_report(self, report):
+    async def _sonar_distance_report(self, report):
         """
 
         :param report: data[0] = trigger pin, data[1] and data[2] = distance
@@ -2594,9 +2456,9 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
             cb_list = [PrivateConstants.SONAR_DISTANCE, report[0],
                        (report[1] + (report[2] / 100)), time.time()]
 
-        cb(cb_list)
+        await cb(cb_list)
 
-    def _spi_report(self, report):
+    async def _spi_report(self, report):
         """
         Execute callback for spi reads.
 
@@ -2609,78 +2471,37 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         cb_list.append(time.time())
 
         if cb_list[1]:
-            self.spi_callback2(cb_list)
+            await self.spi_callback2(cb_list)
         else:
-            self.spi_callback(cb_list)
+            await self.spi_callback(cb_list)
 
-    def _run_threads(self):
-        self.run_event.set()
-
-    def _is_running(self):
-        return self.run_event.is_set()
-
-    def _stop_threads(self):
-        self.run_event.clear()
-
-    def _reporter(self):
+    async def _report_dispatcher(self):
         """
-        This is the reporter thread. It continuously pulls data from
-        the deque. When a full message is detected, that message is
-        processed.
+        This is a private method.
+        It continually accepts and interprets data coming from Telemetrix4Arduino,and then
+        dispatches the correct handler to process the data.
+
+        It first receives the length of the packet, and then reads in the rest of the
+        packet. A packet consists of a length, report identifier and then the report data.
+        Using the report identifier, the report handler is fetched from report_dispatch.
+
+        :returns: This method never returns
         """
-        self.run_event.wait()
-
-        while self._is_running() and not self.shutdown_flag:
-            if len(self.the_deque):
-                # response_data will be populated with the received data for the report
-                response_data = []
-                packet_length = self.the_deque.popleft()
-
-                if packet_length:
-                    # get all the data for the report and place it into response_data
-                    for i in range(packet_length):
-                        while not len(self.the_deque):
-                            time.sleep(self.sleep_tune)
-                        data = self.the_deque.popleft()
-                        response_data.append(data)
-
-                    # get the report type and look up its dispatch method
-                    # here we pop the report type off of response_data
-                    report_type = response_data.pop(0)
-
-                    # retrieve the report handler from the dispatch table
-                    dispatch_entry = self.report_dispatch.get(report_type)
-
-                    # if there is additional data for the report,
-                    # it will be contained in response_data
-                    # noinspection PyArgumentList
-                    dispatch_entry(response_data)
-                    continue
-
-                else:
-                    if self.shutdown_on_exception:
-                        self.shutdown()
-                    raise RuntimeError(
-                        'A report with a packet length of zero was received.')
-            else:
-                time.sleep(self.sleep_tune)
-
-    def _serial_receiver(self):
-        """
-        Thread to continuously check for incoming data.
-        When a byte comes in, place it onto the deque.
-        """
-        self.run_event.wait()
-
-        while self._is_running() and not self.shutdown_flag:
-            # we can get an OSError: [Errno9] Bad file descriptor when shutting down
-            # just ignore it
+        while True:
+            if self.shutdown_flag:
+                break
             try:
-                if self.serial_port.inWaiting():
-                    c = self.serial_port.read()
-                    self.the_deque.append(ord(c))
-                else:
-                    time.sleep(self.sleep_tune)
-                    # continue
-            except OSError:
-                pass
+                packet_length = ord(await self.sock.read())
+            except TypeError:
+                continue
+
+            # get the rest of the packet
+
+            packet = list(await self.sock.read(packet_length))
+
+            report = packet[0]
+            # handle all other messages by looking them up in the
+            # command dictionary
+
+            await self.report_dispatch[report](packet[1:])
+            await asyncio.sleep(self.sleep_tune)
