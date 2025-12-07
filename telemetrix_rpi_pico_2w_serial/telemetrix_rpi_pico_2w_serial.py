@@ -143,8 +143,6 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
             {PrivateConstants.SONAR_DISTANCE: self._sonar_distance_report})
         self.report_dispatch.update({PrivateConstants.DHT_REPORT: self._dht_report})
         self.report_dispatch.update({PrivateConstants.SPI_REPORT: self._spi_report})
-        # self.report_dispatch.update(
-        #     {PrivateConstants.ONE_WIRE_REPORT: self._onewire_report})
         self.report_dispatch.update(
             {PrivateConstants.STEPPER_DISTANCE_TO_GO:
                  self._stepper_distance_to_go_report})
@@ -307,9 +305,9 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
             # com_port specified - set com_port and baud rate
             try:
                 self._manual_open()
-            except KeyboardInterrupt:
-                if self.shutdown_on_exception:
-                    self.shutdown()
+            except (KeyboardInterrupt, SerialException):
+                print(f'Could not open serial port {self.com_port} -- exiting')
+                sys.exit(0)
 
         if self.serial_port:
             print(
@@ -319,12 +317,20 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
             self.serial_port.reset_input_buffer()
             self.serial_port.reset_output_buffer()
 
-        # no com_port found - raise a runtime exception
+        # no com_port found - quit the program
         else:
+            print('Could not a find a serial port.')
             sys.exit(0)
 
         # allow the threads to run
         self._run_threads()
+        self.the_reporter_thread.start()
+
+        self.the_data_receive_thread.start()
+
+        # clear out the serial buffers
+        self.serial_port.reset_input_buffer()
+        self.serial_port.reset_output_buffer()
 
         print('Retrieving pico ID...')
         self._get_pico_id()
@@ -335,8 +341,11 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
             if self.reported_pico_id != self.pico_instance_id:
                 if self.shutdown_on_exception:
                     self.shutdown()
-                raise RuntimeError(f'Incorrect pico ID Specified - correct ID :'
-                                   f' {self.reported_pico_id}')
+
+                print(f'Incorrect pico ID Specified {self.pico_instance_id} - correct ID '
+                      f':{self.reported_pico_id}')
+
+                sys.exit(0)
             else:
                 print('Valid pico ID Found.')
         # get pico firmware version and print it
@@ -386,63 +395,19 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
                 # display to the user
                 print('\t' + port.device)
 
-            self.the_reporter_thread.start()
-
-            self.the_data_receive_thread.start()
-
-            # clear out the serial buffers
-            self.serial_port.reset_input_buffer()
-            self.serial_port.reset_output_buffer()
-            return
-
-        # raise RuntimeError("Could not find connected device.")
-        print(" _find_pico: Could not find valid serial port. Check for valid PID and "
-              "VID and make sure your PICO is plugged in.")
-        sys.exit(0)
-
     def _manual_open(self):
         """
         Com port was specified by the user - try to open up that port
 
         """
-
-        self.the_reporter_thread.start()
-
-        self.the_data_receive_thread.start()
         # if port is not found, a serial exception will be thrown
-        try:
-            print(f'Opening {self.com_port}...')
-            self.serial_port = serial.Serial(self.com_port, 115200,
-                                                             timeout=1, writeTimeout=0)
+        print(f'Opening {self.com_port}...')
 
-            print(
-                f'\nWaiting {self.arduino_wait} seconds(arduino_wait) for Arduino devices to '
-                'reset...')
-            self._run_threads()
-            time.sleep(self.arduino_wait)
-
-            if self.pico_instance_id:
-                if self.reported_pico_id != self.pico_instance_id:
-                    if self.shutdown_on_exception:
-                        self.shutdown()
-                    raise RuntimeError(f'Incorrect pico ID: {self.reported_pico_id}')
-            print('Valid pico ID Found.')
-            # get pico firmware version and print it
-            print('\nRetrieving Telemetrix4pico2W firmware ID...')
-            self._get_firmware_version()
-
-            if not self.firmware_version:
-                if self.shutdown_on_exception:
-                    self.shutdown()
-                raise RuntimeError(f'Telemetrix4pico2W Sketch Firmware Version Not Found')
-
-            else:
-                print(f'Telemetrix4pico2W firmware version: {self.firmware_version[0]}.'
-                      f'{self.firmware_version[1]}')
-        except KeyboardInterrupt:
-            if self.shutdown_on_exception:
-                self.shutdown()
-            raise RuntimeError('User Hit Control-C')
+        self.serial_port = serial.Serial(self.com_port, 115200,
+                                                                 timeout=1, writeTimeout=0)
+        if self.serial_port is None:
+            print(f'Could not open port {self.com_port}')
+            sys.exit(0)
 
     def pwm_write(self, pin, duty_cycle=0):
         """

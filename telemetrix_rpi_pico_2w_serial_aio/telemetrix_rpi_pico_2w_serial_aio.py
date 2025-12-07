@@ -356,9 +356,10 @@ class TelemetrixRpiPico2WSerialAIO:
 
         if self.pico_instance_id:
             if self.reported_pico_id != self.pico_instance_id:
-                if self.shutdown_on_exception:
-                    await self.shutdown()
-                raise RuntimeError(f'Incorrect pico ID: {self.reported_pico_id}')
+                print(f'Incorrect pico ID Specified {self.pico_instance_id} - correct ID '
+                      f':{self.reported_pico_id}')
+
+                sys.exit(0)
             else:
                 print('Valid pico ID Found.')
 

@@ -47,8 +47,12 @@ class TelemetrixAioSerial:
         :return: None
         """
         sys.stdout.flush()
-        self.my_serial = serial.Serial(com_port, baud_rate, timeout=1,
+        try:
+            self.my_serial = serial.Serial(com_port, baud_rate, timeout=1,
                                        writeTimeout=1)
+        except serial.SerialException:
+            print("Could not open serial port {} --- exiting".format(com_port))
+            sys.exit(1)
 
         self.com_port = com_port
         self.sleep_tune = sleep_tune
