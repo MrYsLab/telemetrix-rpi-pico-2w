@@ -48,7 +48,9 @@ class TelemetrixRpiPico2WiFiAio:
                  loop=None,
                  shutdown_on_exception=True,
                  reset_on_shutdown=True,
-                 close_loop_on_shutdown=True):
+                 close_loop_on_shutdown=True,
+                 pico_instance_id=None,
+                 ):
 
         """
 
@@ -70,6 +72,8 @@ class TelemetrixRpiPico2WiFiAio:
         :param reset_on_shutdown: Reset the board upon shutdown
 
         :param close_loop_on_shutdown: If true, close the loop during shutdown
+
+
         """
 
         self.shutdown_on_exception = shutdown_on_exception
@@ -82,6 +86,7 @@ class TelemetrixRpiPico2WiFiAio:
         self.ip_address = ip_address
         self.ip_port = ip_port
         self.sleep_tune = sleep_tune
+        self.pico_instance_id = pico_instance_id
 
         # set the event loop
         if loop is None:
@@ -121,6 +126,8 @@ class TelemetrixRpiPico2WiFiAio:
             {PrivateConstants.ANALOG_REPORT: self._analog_message})
         self.report_dispatch.update(
             {PrivateConstants.CPU_TEMP_REPORT: self._cpu_temp_message})
+        self.report_dispatch.update(
+            {PrivateConstants.UNIQUE_ID_REPORT: self._report_unique_id})
         self.report_dispatch.update(
             {PrivateConstants.FIRMWARE_REPORT: self._firmware_message})
         self.report_dispatch.update(
@@ -307,6 +314,23 @@ class TelemetrixRpiPico2WiFiAio:
 
         self.the_task = self.loop.create_task(self._report_dispatcher())
 
+        print('Retrieving pico ID...')
+        await self._get_pico_id()
+        # time.sleep(.2)
+        print(f'Pico Unique ID: {self.reported_pico_id}')
+
+        if self.pico_instance_id:
+            if self.reported_pico_id != self.pico_instance_id:
+                if self.shutdown_on_exception:
+                    await self.shutdown()
+
+                print(f'Incorrect pico ID Specified {self.pico_instance_id} - correct ID '
+                      f':{self.reported_pico_id}')
+
+                sys.exit(0)
+            else:
+                print('Valid pico ID Found.')
+
         # get telemetrix firmware version and print it
         print('\nRetrieving Telemetrix4RpiPicoW firmware ID...')
         await self._get_firmware_version()
@@ -461,6 +485,16 @@ class TelemetrixRpiPico2WiFiAio:
         command = [PrivateConstants.MODIFY_REPORTING,
                    PrivateConstants.REPORTING_DIGITAL_ENABLE, pin]
         await self._send_command(command)
+
+    async def _get_pico_id(self):
+        """
+        Retrieve pico-telemetrix pico id
+
+        """
+        command = [PrivateConstants.RETRIEVE_PICO_UNIQUE_ID]
+        await self._send_command(command)
+        # provide time for the reply
+        await asyncio.sleep(.5)
 
     async def _get_firmware_version(self):
         """

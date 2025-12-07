@@ -26,7 +26,7 @@ import warnings
 from telemetrix_rpi_pico_2w_common.private_constants import PrivateConstants
 
 
-# noinspection PyMethodMayBeStatic
+# noinspection PyMethodMayBeStatic,PyTypeChecker
 
 
 class TelemetrixRpiPico2WiFi(threading.Thread):
@@ -45,7 +45,9 @@ class TelemetrixRpiPico2WiFi(threading.Thread):
                  ip_port=31335,
                  sleep_tune=0.000001,
                  shutdown_on_exception=True,
-                 reset_on_shutdown=True):
+                 reset_on_shutdown=True,
+                 pico_instance_id=None,
+                 ):
 
         """
 
@@ -60,6 +62,9 @@ class TelemetrixRpiPico2WiFi(threading.Thread):
                                       receiving a KeyboardInterrupt exception
 
         :param reset_on_shutdown: Reset the board upon shutdown
+
+        :param pico_instance_id: Pico instance ID (pico board serial number)
+
         """
 
         # initialize threading parent
@@ -92,6 +97,7 @@ class TelemetrixRpiPico2WiFi(threading.Thread):
         self.sleep_tune = sleep_tune
         self.shutdown_on_exception = shutdown_on_exception
         self.reset_on_shutdown = reset_on_shutdown
+        self.pico_instance_id = pico_instance_id
 
         # create a deque to receive and process data from the pico
         self.the_deque = deque()
@@ -115,6 +121,8 @@ class TelemetrixRpiPico2WiFi(threading.Thread):
             {PrivateConstants.CPU_TEMP_REPORT: self._cpu_temp_message})
         self.report_dispatch.update(
             {PrivateConstants.FIRMWARE_REPORT: self._firmware_message})
+        self.report_dispatch.update(
+            {PrivateConstants.UNIQUE_ID_REPORT: self._report_unique_id})
         self.report_dispatch.update(
             {PrivateConstants.SERVO_UNAVAILABLE: self._servo_unavailable})
         self.report_dispatch.update(
@@ -284,7 +292,7 @@ class TelemetrixRpiPico2WiFi(threading.Thread):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, True)
         try:
-            self.sock.settimeout(8)
+            self.sock.settimeout(12)
             self.sock.connect((self.ip_address, self.ip_port))
         except (socket.timeout, OSError):
             print(f'Could not establish a connection to {self.ip_address}:{self.ip_port}')
@@ -299,6 +307,23 @@ class TelemetrixRpiPico2WiFi(threading.Thread):
 
         # allow the threads to run
         self._run_threads()
+
+        print('Retrieving pico ID...')
+        self._get_pico_id()
+        # time.sleep(.2)
+        print(f'Pico Unique ID: {self.reported_pico_id}')
+
+        if self.pico_instance_id:
+            if self.reported_pico_id != self.pico_instance_id:
+                if self.shutdown_on_exception:
+                    self.shutdown()
+
+                print(f'Incorrect pico ID Specified {self.pico_instance_id} - correct ID '
+                      f':{self.reported_pico_id}')
+
+                sys.exit(0)
+            else:
+                print('Valid pico ID Found.')
 
         # get pico firmware version and print it
         print('\nRetrieving Telemetrix4picoW firmware ID...')
@@ -454,6 +479,16 @@ class TelemetrixRpiPico2WiFi(threading.Thread):
         command = [PrivateConstants.MODIFY_REPORTING,
                    PrivateConstants.REPORTING_DIGITAL_ENABLE, pin]
         self._send_command(command)
+
+    def _get_pico_id(self):
+        """
+        Retrieve pico-telemetrix pico id
+
+        """
+        command = [PrivateConstants.RETRIEVE_PICO_UNIQUE_ID]
+        self._send_command(command)
+        # provide time for the reply
+        time.sleep(.5)
 
     def _get_firmware_version(self):
         """
@@ -2232,8 +2267,6 @@ class TelemetrixRpiPico2WiFi(threading.Thread):
             self.shutdown()
         raise RuntimeError(
             f'i2c Too few bytes received for I2C port {data[0]}')
-        while True:
-            time.sleep(1)
 
     def _i2c_too_many_bytes_received(self, data):
         """
@@ -2245,8 +2278,6 @@ class TelemetrixRpiPico2WiFi(threading.Thread):
             self.shutdown()
         raise RuntimeError(
             f'i2c too many bytes received for I2C port {data[0]}')
-        while True:
-            time.sleep(.1)
 
     def _report_unique_id(self, data):
         """
