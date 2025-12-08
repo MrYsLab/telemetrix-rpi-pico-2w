@@ -30,7 +30,10 @@ and toggle the pin 5 times.
 DIGITAL_PIN = 64  # the board LED
 
 # Create a Telemetrix instance.
-board = telemetrix_rpi_pico_2w_wifi.TelemetrixRpiPico2WiFi(ip_address='192.168.2.212')
+board = telemetrix_rpi_pico_2w_wifi.TelemetrixRpiPico2WiFi(
+    ip_address='192.168.2.212',
+    # pico_instance_id=[88, 237, 12, 180, 171, 71, 154, 172]
+    )
 
 # Set the DIGITAL_PIN as an output pin
 board.set_pin_mode_digital_output(DIGITAL_PIN)
