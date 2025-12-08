@@ -636,7 +636,6 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
             message = [PrivateConstants.CPU_TEMP_REPORT, temperature, time_stamp]
             self.cpu_temp_callback(message)
 
-    # TBD
     def i2c_read(self, address, register, number_of_bytes,
                  callback=None, i2c_port=0, send_stop=True):
         """

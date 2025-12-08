@@ -16,6 +16,7 @@
 """
 
 import asyncio
+import struct
 import sys
 import time
 
@@ -116,6 +117,8 @@ class TelemetrixRpiPico2WSerialAIO:
         self.report_dispatch.update(
             {PrivateConstants.ANALOG_REPORT: self._analog_message})
         self.report_dispatch.update(
+            {PrivateConstants.CPU_TEMP_REPORT: self._cpu_temp_message})
+        self.report_dispatch.update(
             {PrivateConstants.UNIQUE_ID_REPORT: self._report_unique_id})
         self.report_dispatch.update(
             {PrivateConstants.FIRMWARE_REPORT: self._report_firmware_version})
@@ -137,6 +140,9 @@ class TelemetrixRpiPico2WSerialAIO:
 
         # dictionaries to store the callbacks for each pin
         self.analog_callbacks = {}
+
+        self.cpu_temp_active = False
+        self.cpu_temp_callback = None
 
         self.digital_callbacks = {}
 
@@ -329,6 +335,24 @@ class TelemetrixRpiPico2WSerialAIO:
                 await self.shutdown()
             raise RuntimeError('User Hit Control-C')
 
+    async def _cpu_temp_message(self, data):
+        """
+        This is a private message handler method.
+        It is a message handler for cpu temperature messages.
+
+        :param data: message data
+
+        """
+
+        temperature = struct.unpack('<f', bytes(data))
+        temperature = round(temperature[0], 2)
+        time_stamp = time.time()
+        # self.digital_pins[pin].event_time = time_stamp
+        if self.cpu_temp_callback:
+            message = [PrivateConstants.CPU_TEMP_REPORT, temperature, time_stamp]
+            await self.cpu_temp_callback(message)
+
+
     async def _get_firmware_version(self):
         """
         This method retrieves the Telemetrix4RPiPico firmware version
@@ -341,6 +365,60 @@ class TelemetrixRpiPico2WSerialAIO:
         await asyncio.sleep(.1)
 
         return self.firmware_version
+
+    async def get_cpu_temperature(self, threshold=1.0, polling_interval=1000,
+                                callback=None):
+        """
+        Request the CPU temperature. This will continuously monitor the temperature
+        and report it back in degrees Celsius. Call only once, unless you wish to
+        modify the polling interval.
+
+        :param threshold:    The threshold value is used to determine when a
+        temperature report is generated. The current temperature is compared to
+        plus and minus the threshold value and if the value is exceeded, a report
+        will be generated. To receive continuous reports, set the threshold to 0.
+        The maximum of 5.0 degrees.
+
+        :param polling_interval: number of milliseconds between temperature reads.
+                                 Maximum of 60 seconds (6000 ms.)
+
+        :param callback: callback function
+
+        callback returns a list:
+        [CPU_TEMPERATURE_REPORT, degrees_celsius, raw_time_stamp]
+
+        CPU_TEMPERATURE_REPORT = 20
+        """
+
+        if not callback:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError('A callback must be specified')
+
+        # convert the floating point threshold to bytes
+
+        if 0.0 <= threshold < 30.0:
+            if 0 <= polling_interval < 60000:
+                thresh_list = list(struct.pack("f", threshold))
+                polling_list = polling_interval.to_bytes(2, byteorder='big')
+                self.cpu_temp_callback = callback
+
+                self.cpu_temp_active = True
+
+                command = [PrivateConstants.GET_CPU_TEMPERATURE, thresh_list[0],
+                           thresh_list[1],
+                           thresh_list[2], thresh_list[3], polling_list[0],
+                           polling_list[1]]
+
+                await self._send_command(command)
+            else:
+                if self.shutdown_on_exception:
+                    await self.shutdown()
+                raise RuntimeError('get_cpu_temperature: polling interval out of range.')
+        else:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError('get_cpu_temperature: threshold out of range.')
 
     async def _get_pico_id(self):
         """
@@ -851,7 +929,7 @@ class TelemetrixRpiPico2WSerialAIO:
 
         self.number_of_pixels = num_pixels
 
-        command = [PrivateConstants.INITIALIZE_NEO_PIXELS, pin_number,
+        command = [PrivateConstants.INIT_NEOPIXELS, pin_number,
                    self.number_of_pixels, fill_r, fill_g, fill_b]
 
         await self._send_command(command)

@@ -18,7 +18,8 @@
 
 import sys
 import time
-from telemetrix_rpi_pico_2w_serial import telemetrix_rpi_pico_2w_serial
+import asyncio
+from telemetrix_rpi_pico_2w_serial_aio import telemetrix_rpi_pico_2w_serial_aio
 
 
 #
@@ -31,10 +32,20 @@ in celsius in the callback.
 CB_REPORT_TYPE = 0
 CB_TEMP = 1
 CB_TIME = 2
-board = telemetrix_rpi_pico_2w_serial.TelemetrixRpiPico2wSerial()
+
+# get the event loop
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+
+# instantiate telemetrix
+try:
+    board = telemetrix_rpi_pico_2w_serial_aio.TelemetrixRpiPico2WSerialAIO(loop=loop)
+except (KeyboardInterrupt, RuntimeError):
+    # loop.run_until_complete(board.reset_board())
+    sys.exit()
 
 
-def the_callback(data):
+async def the_callback(data):
     """
     A callback function to report data changes.
     This will print the pin number, its reported value and
@@ -47,29 +58,32 @@ def the_callback(data):
     print(f'CPU Temperature: {data[CB_TEMP]} Date: {date}')
 
 
-def get_cpu_temp():
+
+async def get_cpu_temp():
     """
      This function will request cpu temperature reports
      """
     # board = telemetrix_rpi_pico_2w_serial.TelemetrixRpiPico2wSerial()
 
     # set the pin mode
-    board.get_cpu_temperature(threshold=.01, polling_interval=3000,
+    await board.get_cpu_temperature(threshold=.01, polling_interval=3000,
                               callback=the_callback)
-    time.sleep(.4)
+    await asyncio.sleep(.4)
 
     print('Enter Control-C to quit.')
     try:
 
         while True:
-            time.sleep(.1)
+            await asyncio.sleep(.1)
     except KeyboardInterrupt:
-        board.shutdown()
+        await board.shutdown()
         sys.exit(0)
-
-
 try:
-    get_cpu_temp()
+    # start the main function
+    loop.run_until_complete(get_cpu_temp())
+    loop.run_until_complete(board.reset_board())
 except KeyboardInterrupt:
-    board.shutdown()
+    loop.run_until_complete(board.shutdown())
+    sys.exit(0)
+except RuntimeError:
     sys.exit(0)
