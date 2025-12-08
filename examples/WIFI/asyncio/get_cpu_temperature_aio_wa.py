@@ -27,10 +27,9 @@ in celsius in the callback.
 """
 
 # Callback data indices
-CB_PIN_MODE = 0
-CB_PIN = 1
-CB_VALUE = 2
-CB_TIME = 3
+CB_REPORT_TYPE = 0
+CB_TEMP = 1
+CB_TIME = 2
 
 
 async def the_callback(data):
@@ -41,9 +40,9 @@ async def the_callback(data):
     :param data: [report_type, temperature, timestamp]
     """
     print(f'raw data = {data}')
-    date = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(data[2]))
+    date = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(data[CB_TIME]))
 
-    print(f'CPU Temperature: {data[1]} Date: {date}')
+    print(f'CPU Temperature: {data[CB_TEMP ]} Date: {date}')
 
 
 async def get_cpu_temp(my_board):

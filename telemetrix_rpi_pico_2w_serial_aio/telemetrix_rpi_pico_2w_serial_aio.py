@@ -600,7 +600,7 @@ class TelemetrixRpiPico2WSerialAIO:
         value_msb = duty_cycle >> 8
         value_lsb = duty_cycle & 0x00ff
 
-        command = [PrivateConstants.PWM_WRITE, pin, value_msb, value_lsb]
+        command = [PrivateConstants.ANALOG_WRITE, pin, value_msb, value_lsb]
         await self._send_command(command)
 
     async def i2c_read(self, address, register, number_of_bytes,
