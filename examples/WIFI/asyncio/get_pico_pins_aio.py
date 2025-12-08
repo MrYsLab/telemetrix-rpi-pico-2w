@@ -15,6 +15,9 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
+# This example displays the current pin modes that were set for the device
+
 import asyncio
 import sys
 
@@ -57,8 +60,3 @@ try:
 except KeyboardInterrupt:
     loop.run_until_complete(board.shutdown())
     sys.exit(0)
-
-# Create a Telemetrix instance.
-board = telemetrix_rpi_pico_2w_wifi_aio.TelemetrixRpiPico2WiFiAio(
-    ip_address='192.168.2.212', loop=loop)
-board.shutdown()
