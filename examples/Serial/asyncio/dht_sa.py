@@ -15,10 +15,10 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import asyncio
 import sys
 import time
-from telemetrix_rpi_pico_2w_serial import telemetrix_rpi_pico_2w_serial
-
+from telemetrix_rpi_pico_2w_serial_aio import telemetrix_rpi_pico_2w_serial_aio
 
 """
 This program monitors a DHT device
@@ -27,7 +27,7 @@ DHT_PIN = 6
 
 # indices into callback data for valid data
 REPORT_TYPE = 0
-REPORT_SUBTYPE = 1 # 0 = good data. Non-zero = error value returned
+REPORT_SUBTYPE = 1  # 0 = good data. Non-zero = error value returned
 PIN = 2
 HUMIDITY = 3
 TEMPERATURE = 4
@@ -36,7 +36,7 @@ ERROR_TIME = 3
 
 
 # A callback function to display the distance
-def the_callback(data):
+async def the_callback(data):
     """
     The callback function to display the current humidity and temperature
     :param data: [report_type = PrivateConstants.DHT_REPORT, pin  humidity,
@@ -55,23 +55,41 @@ def the_callback(data):
     else:
         date = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(data[TIME]))
         temperature_c = data[TEMPERATURE]
-        temperature_f = temperature_c * 9/5 + 32
-        print(f'DHT Data Report:'   
+        temperature_f = temperature_c * 9 / 5 + 32
+        print(f'DHT Data Report:'
               f'Pin: {data[PIN]} Humidity: {data[HUMIDITY]} Temperature:  '
               f'{temperature_c}c  {temperature_f}f  Time: {date}')
 
 
-# instantiate a pico
-board = telemetrix_rpi_pico_2w_serial.TelemetrixRpiPico2wSerial()
+async def dht(the_board):
+    # set  2 pins to DHT mode
+    await the_board.set_pin_mode_dht(DHT_PIN, the_callback)
 
-# set a pin to DHT mode
-board.set_pin_mode_dht(DHT_PIN, the_callback)
+    # wait forever
+    while True:
+        try:
+            await asyncio.sleep(1)
+        except KeyboardInterrupt:
+            await board.shutdown()
+            sys.exit(0)
 
-# wait forever
-while True:
-    try:
-        time.sleep(.01)
-    except KeyboardInterrupt:
-        board.shutdown()
-        sys.exit(0)
 
+# get the event loop
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+
+# instantiate telemetrix
+try:
+    board = telemetrix_rpi_pico_2w_serial_aio.TelemetrixRpiPico2WSerialAIO(loop=loop)
+except (KeyboardInterrupt, RuntimeError):
+    sys.exit()
+
+try:
+    # start the main function
+    loop.run_until_complete(dht(board))
+    loop.run_until_complete(board.reset_board())
+except KeyboardInterrupt:
+    loop.run_until_complete(board.shutdown())
+    sys.exit(0)
+except RuntimeError:
+    sys.exit(0)

@@ -289,9 +289,6 @@ class TelemetrixRpiPico2WSerialAIO:
         board using its USB PID and VID.
         """
 
-        # a list of serial ports to be checked
-        serial_ports = []
-
         print('Opening all potential serial ports...')
         the_ports_list = list_ports.comports()
         for port in the_ports_list:
@@ -1579,10 +1576,6 @@ class TelemetrixRpiPico2WSerialAIO:
                 continue
             except OSError:
                 break
-            # except AttributeError:
-            #     raise RuntimeError('Is your USB cable plugged in?')
-            #     if self.shutdown_on_exception:
-            #         await self.shutdown()
 
             # get the rest of the packet
             try:
@@ -1593,11 +1586,13 @@ class TelemetrixRpiPico2WSerialAIO:
                 break
 
             report = packet[0]
+
             # handle all other messages by looking them up in the
             # command dictionary
 
             # noinspection PyArgumentList
             await self.report_dispatch[report](packet[1:])
+
             await asyncio.sleep(self.sleep_tune)
 
     async def _analog_message(self, data):
@@ -1616,22 +1611,64 @@ class TelemetrixRpiPico2WSerialAIO:
             message = [PrivateConstants.ANALOG_REPORT, pin, value, time_stamp]
             await self.analog_callbacks[pin](message)
 
-    async def _dht_report(self, data):
+    async def _dht_report(self, report):
         """
         This is the dht report handler method.
 
-        :param data:
+        :param report:
 
-                    data[0] = report sub type - DHT_REPORT
+                    This is the dht report handler method.
 
-                    data[1] = pin number
+        :param report:
+               data[0] = report error return
+                                No Errors = 0
 
-                    data[2] = humidity
+                                Checksum Error = 1
 
-                    data[3] = temperature
+                                Timeout Error = 2
 
-                    data[4] = timestamp
+                                Invalid Value = 999
 
+               data[1] = pin number
+
+               data[2] = humidity positivity flag
+
+               data[3] = temperature positivity value
+
+               data[4] = humidity integer
+
+               data[5] = humidity fractional value
+
+               data[6] = temperature integer
+
+               data[7] = temperature fractional value
+
+
+        """
+        if report[0] != 0:  # DHT_ERROR
+            # error report
+            # data[0] = report sub type, data[1] = pin, data[2] = error message
+            if self.dht_callbacks[report[1]]:
+                # Callback 0=DHT REPORT, DHT_ERROR, PIN, Time
+                message = [PrivateConstants.DHT_REPORT, report[0], report[1],
+                           time.time()]
+                self.dht_callbacks[report[1]](message)
+        else:
+            # got valid data DHT_DATA
+            f_humidity = float(report[4] + report[5] / 100)
+            if report[2]:
+                f_humidity *= -1.0
+            f_temperature = float(report[6] + report[7] / 100)
+            if report[3]:
+                f_temperature *= -1.0
+            message = [PrivateConstants.DHT_REPORT, report[0], report[1],
+                       f_humidity, f_temperature, time.time()]
+
+            try:
+                await self.dht_callbacks[report[1]](message)
+                await asyncio.sleep(.8)
+            except KeyError:
+                pass
 
         """
         cb = self.dht_callbacks[data[0]]
@@ -1639,6 +1676,7 @@ class TelemetrixRpiPico2WSerialAIO:
         cb_list = [PrivateConstants.DHT_REPORT, data[0],
                    (data[1] + (data[2] / 100)), (data[3] + (data[4] / 100)), time.time()]
         await cb(cb_list)
+        """
 
     async def _digital_message(self, data):
         """

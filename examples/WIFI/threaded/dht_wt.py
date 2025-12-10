@@ -17,7 +17,7 @@
 
 import sys
 import time
-from telemetrix_rpi_pico_2w_serial import telemetrix_rpi_pico_2w_serial
+from telemetrix_rpi_pico_2w_wifi import telemetrix_rpi_pico_2w_wifi
 
 
 """
@@ -55,14 +55,14 @@ def the_callback(data):
     else:
         date = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(data[TIME]))
         temperature_c = data[TEMPERATURE]
-        temperature_f = temperature_c * 9/5 + 32
+        temperature_f = round(temperature_c * 9 / 5 + 32)
         print(f'DHT Data Report:'   
               f'Pin: {data[PIN]} Humidity: {data[HUMIDITY]} Temperature:  '
               f'{temperature_c}c  {temperature_f}f  Time: {date}')
 
 
 # instantiate a pico
-board = telemetrix_rpi_pico_2w_serial.TelemetrixRpiPico2wSerial()
+board = telemetrix_rpi_pico_2w_wifi.TelemetrixRpiPico2WiFi(ip_address='192.168.2.212')
 
 # set a pin to DHT mode
 board.set_pin_mode_dht(DHT_PIN, the_callback)
@@ -70,8 +70,7 @@ board.set_pin_mode_dht(DHT_PIN, the_callback)
 # wait forever
 while True:
     try:
-        time.sleep(.01)
+        time.sleep(.1)
     except KeyboardInterrupt:
         board.shutdown()
         sys.exit(0)
-

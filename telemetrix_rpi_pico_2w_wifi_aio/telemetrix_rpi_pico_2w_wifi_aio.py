@@ -2226,7 +2226,7 @@ class TelemetrixRpiPico2WiFiAio:
             f_temperature = float(report[6] + report[7] / 100)
             if report[3]:
                 f_temperature *= -1.0
-            message = [PrivateConstants.DHT_REPORT,  report[1],
+            message = [PrivateConstants.DHT_REPORT, report[0], report[1],
                        f_humidity, f_temperature, time.time()]
 
             await self.dht_callbacks[report[1]](message)

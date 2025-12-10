@@ -2191,7 +2191,7 @@ class TelemetrixRpiPico2WiFi(threading.Thread):
 
 
                 """
-        if report[0]:  # DHT_ERROR
+        if report[0] != 0:  # DHT_ERROR
             # error report
             # data[0] = report sub type, data[1] = pin, data[2] = error message
             if self.dht_callbacks[report[1]]:
@@ -2207,7 +2207,7 @@ class TelemetrixRpiPico2WiFi(threading.Thread):
             f_temperature = float(report[6] + report[7] / 100)
             if report[3]:
                 f_temperature *= -1.0
-            message = [PrivateConstants.DHT_REPORT, report[1],
+            message = [PrivateConstants.DHT_REPORT, report[0], report[1],
                        f_humidity, f_temperature, time.time()]
 
             try:
