@@ -1,5 +1,5 @@
 """
- Copyright (c) 2025 Alan Yorinks All rights reserved.
+ Copyright (c) 2021-2025 Alan Yorinks All rights reserved.
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -42,10 +42,10 @@ try:
     # use raw values for a fade
     for level in range(0, 19999, 1000):
         board.pwm_write(DIGITAL_PIN, level)
-        time.sleep(.5)
+        time.sleep(.05)
     for level in range(19999, 0, -1000):
         board.pwm_write(DIGITAL_PIN, level)
-        time.sleep(.5)
+        time.sleep(.05)
 
     board.pwm_write(DIGITAL_PIN, 0)
 except KeyboardInterrupt:

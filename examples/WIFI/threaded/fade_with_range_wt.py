@@ -1,5 +1,5 @@
 """
- Copyright (c) 2021-2025 Alan Yorinks All rights reserved.
+ Copyright (c) 2021 Alan Yorinks All rights reserved.
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -16,10 +16,9 @@
 
 """
 
-import sys
 import time
 
-from telemetrix_rpi_pico_2w_serial import telemetrix_rpi_pico_2w_serial
+from telemetrix_rpi_pico_2w_wifi import telemetrix_rpi_pico_2w_wifi
 
 """
 Setup a pin for output and fade its intensity
@@ -30,7 +29,7 @@ Setup a pin for output and fade its intensity
 DIGITAL_PIN = 6
 
 # Create a Telemetrix instance.
-board = telemetrix_rpi_pico_2w_serial.TelemetrixRpiPico2wSerial()
+board = telemetrix_rpi_pico_2w_wifi.TelemetrixRpiPico2WiFi(ip_address='192.168.2.212')
 board.pwm_range(255)
 
 # Set the DIGITAL_PIN as an output pin
@@ -41,13 +40,12 @@ board.set_pin_mode_pwm_output(DIGITAL_PIN)
 # exception. Catch the exception and exit gracefully.
 
 try:
-    # use raw values for a fade
     for level in range(0, 255, 5):
         board.pwm_write(DIGITAL_PIN, level)
-        time.sleep(.05)
+        time.sleep(.0001)
     for level in range(255, 0, -5):
         board.pwm_write(DIGITAL_PIN, level)
-        time.sleep(.05)
+        time.sleep(.0001)
 
     board.pwm_write(DIGITAL_PIN, 0)
 

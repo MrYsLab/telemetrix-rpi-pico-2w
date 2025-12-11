@@ -190,6 +190,9 @@ class TelemetrixRpiPico2WSerialAIO:
         # reported pico_id
         self.reported_pico_id = []
 
+        # maximum pwm duty cycle - 20000
+        self.maximum_pwm_duty_cycle = PrivateConstants.MAX_PWM_DUTY_CYCLE
+
         # flag to indicate if i2c was previously enabled
         self.i2c_enabled = False
 
@@ -438,6 +441,26 @@ class TelemetrixRpiPico2WSerialAIO:
             else:
                 print('Valid pico ID Found.')
 
+    async def pwm_range(self, range_pwm):
+        """
+        Set the duty cycle range.
+        The range of values is 16 to 65535
+
+        :param range_pwm: range value
+        """
+
+        if 16 <= range_pwm <= 65535:
+            data = range_pwm.to_bytes(4, byteorder='big')
+            self.maximum_pwm_duty_cycle = range_pwm
+
+            command = [PrivateConstants.SET_PWM_RANGE, data[0], data[1],
+                       data[2], data[3]]
+            await self._send_command(command)
+        else:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError('pwm_range is out of range')
+
     async def digital_write(self, pin, value):
         """
         Set the specified pin to the specified value.
@@ -558,46 +581,34 @@ class TelemetrixRpiPico2WSerialAIO:
         self.loop_back_callback = callback
         await self._send_command(command)
 
-    async def pwm_write(self, pin, duty_cycle=0, raw=False):
+    async def pwm_write(self, pin, duty_cycle=0):
         """
         Set the specified pin to the specified value.
+        This is a PWM write.
 
         :param pin: pico GPIO pin number
 
-        :param duty_cycle: if the raw parameter is False, then this is expressed
-                           as a percentage between 0 and 100
+        :param duty_cycle: output value - This is dependent upon
+                           the PWM range. Default is 20000, but it
+                           may be modified by calling pwm_range
 
-                           if the raw parameter is True, then the valid range
-                           of values is from 0 - 19999
-
-       :param raw: Sets how the duty-cycle parameter is perceived.
 
         """
         if self.pico_pins[pin] != PrivateConstants.AT_PWM_OUTPUT \
                 and self.pico_pins[pin] != PrivateConstants.AT_SERVO:
             if self.shutdown_on_exception:
                 await self.shutdown()
-            raise RuntimeError('pwm_write: You must set the pin mode before performing '
-                               'a PWM write.')
-        if raw:
-            if not (0 <= duty_cycle < PrivateConstants.MAX_RAW_DUTY_CYCLE):
-                if self.shutdown_on_exception:
-                    await self.shutdown()
-                raise RuntimeError('Raw PWM duty cycle out of range')
-        else:
-            if not (0 <= duty_cycle <= 99):
-                if self.shutdown_on_exception:
-                    await self.shutdown()
-                raise RuntimeError('Raw PWM duty cycle percentage of range')
-            # calculate percentage of duty cycle
-            else:
-                duty_cycle = ((PrivateConstants.MAX_RAW_DUTY_CYCLE * duty_cycle) // 100)
-                # print(duty_cycle)
+            raise RuntimeError('pwm_write: You must set the pin mode before '
+                               'performing an pwm write.')
 
-        value_msb = duty_cycle >> 8
-        value_lsb = duty_cycle & 0x00ff
+        if not (0 <= duty_cycle <= self.maximum_pwm_duty_cycle):
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError('Raw PWM duty cycle out of range')
 
-        command = [PrivateConstants.ANALOG_WRITE, pin, value_msb, value_lsb]
+        value = duty_cycle.to_bytes(2, byteorder='big')
+
+        command = [PrivateConstants.ANALOG_WRITE, pin, value[0], value[1]]
         await self._send_command(command)
 
     async def i2c_read(self, address, register, number_of_bytes,
@@ -1782,7 +1793,10 @@ class TelemetrixRpiPico2WSerialAIO:
         # the length of the list is added at the head
         command.insert(0, len(command))
         # print(command)
-        send_message = bytes(command)
+        try:
+            send_message = bytes(command)
+        except ValueError:
+            print('a')
         if self.serial_port is None:
             if self.shutdown_on_exception:
                 await self.shutdown()
