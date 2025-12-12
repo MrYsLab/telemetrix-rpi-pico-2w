@@ -57,12 +57,11 @@ def neopixel_demo(my_board):
 
     my_board.neopixel_clear()
     # pixel sequence
-    while True:
-        for pixel in range(8):
-            my_board.neo_pixel_set_value(pixel, 0, 0, 64, True)
-            time.sleep(.1)
-            my_board.neopixel_clear()
-
+    for pixel in range(8):
+        my_board.neo_pixel_set_value(pixel, 0, 0, 64, True)
+        time.sleep(.1)
+        my_board.neopixel_clear()
+        time.sleep(.01)
 
 board = telemetrix_rpi_pico_2w_serial.TelemetrixRpiPico2wSerial()
 try:

@@ -751,7 +751,7 @@ class TelemetrixRpiPico2WSerialAIO:
                     await self.shutdown()
                 raise RuntimeError('RGB values must be in the range of 0-255')
 
-        command = [PrivateConstants.SET_NEO_PIXEL, pixel_number, r, g, b, auto_show]
+        command = [PrivateConstants.SET_NEOPIXEL, pixel_number, r, g, b, auto_show]
         await self._send_command(command)
 
         if auto_show:
@@ -768,7 +768,7 @@ class TelemetrixRpiPico2WSerialAIO:
             if self.shutdown_on_exception:
                 await self.shutdown()
             raise RuntimeError('You must call set_pin_mode_neopixel first')
-        command = [PrivateConstants.CLEAR_ALL_NEO_PIXELS, auto_show]
+        command = [PrivateConstants.CLEAR_NEOPIXELS, auto_show]
         await self._send_command(command)
         if auto_show:
             await self.neopixel_show()
@@ -794,7 +794,7 @@ class TelemetrixRpiPico2WSerialAIO:
                 if self.shutdown_on_exception:
                     await self.shutdown()
                 raise RuntimeError('RGB values must be in the range of 0-255')
-        command = [PrivateConstants.FILL_ALL_NEO_PIXELS, r, g, b, auto_show]
+        command = [PrivateConstants.FILL_NEOPIXELS, r, g, b, auto_show]
         await self._send_command(command)
 
         if auto_show:
@@ -809,7 +809,7 @@ class TelemetrixRpiPico2WSerialAIO:
             if self.shutdown_on_exception:
                 await self.shutdown()
             raise RuntimeError('You must call set_pin_mode_neopixel first')
-        command = [PrivateConstants.SHOW_NEO_PIXELS]
+        command = [PrivateConstants.SHOW_NEOPIXELS]
         await self._send_command(command)
 
     async def set_pin_mode_analog_input(self, adc_number, differential=0, callback=None):
