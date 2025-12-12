@@ -1,0 +1,11 @@
+MISO - SDO: Digital pin 16
+MOSI - SDA: Digital pin 19
+SCK: Digital pin 18
+
+SPI_MODE3
+
+bme280 leonardo
+mosi - copi 11 blue
+miso - cipo 12 orange
+cs 10 green
+sck 13 yellow
