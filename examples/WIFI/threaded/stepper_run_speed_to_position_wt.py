@@ -1,5 +1,5 @@
 """
- Copyright (c) 2021 Alan Yorinks All rights reserved.
+ Copyright (c) 2021-2025 Alan Yorinks All rights reserved.
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -19,28 +19,26 @@
 import sys
 import time
 
-from telemetrix_rpi_pico_w import telemetrix_rpi_pico_w
+from telemetrix_rpi_pico_2w_wifi import telemetrix_rpi_pico_2w_wifi
 
 """
-Run a motor using runSpeedToPosition position
+Run a motor using runSpeedToPosition
 """
 
+EXIT_FLAG = 0
 # Create a Telemetrix instance.
-board = telemetrix_rpi_pico_w.TelemetrixRpiPicoW(ip_address='192.168.2.102')
+board = telemetrix_rpi_pico_2w_wifi.TelemetrixRpiPico2WiFi(ip_address='192.168.2.212')
 
 
 def the_callback(data):
+    global EXIT_FLAG
     date = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(data[2]))
     print(f'Motor {data[1]} runSpeedToPosition motion completed at: {date}.')
+    EXIT_FLAG = 1
 
 
 # create an accelstepper instance for a TB6600 motor driver
 motor = board.set_pin_mode_stepper(interface=1, pin1=0, pin2=1)
-
-# if you are using a 28BYJ-48 Stepper Motor with ULN2003
-# comment out the line above and uncomment out the line below.
-# motor = board.set_pin_mode_stepper(interface=8, pin1=8, pin2=10, pin3=9, pin4=11)
-
 
 # set the max speed and target position
 board.stepper_set_max_speed(motor, 800)
@@ -49,13 +47,18 @@ board.stepper_move_to(motor, 2000)
 # set the motor speed
 board.stepper_set_speed(motor, 400)
 
+print('Running speed to position...')
 # run the motor
 board.stepper_run_speed_to_position(motor, completion_callback=the_callback)
 
+
 # keep application running
-while True:
+while EXIT_FLAG == 0:
     try:
-        time.sleep(1)
+        time.sleep(.1)
     except KeyboardInterrupt:
         board.shutdown()
         sys.exit(0)
+
+board.shutdown()
+sys.exit(0)

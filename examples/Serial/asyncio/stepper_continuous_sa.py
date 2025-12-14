@@ -15,13 +15,15 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+import asyncio
 import sys
 import time
 
-from telemetrix_rpi_pico_2w_serial import telemetrix_rpi_pico_2w_serial
+from telemetrix_rpi_pico_2w_serial_aio import telemetrix_rpi_pico_2w_serial_aio
 
 """
-Run a motor to a relative position.
+Run a motor continuously without acceleration
+
 
 Motor used to test is a NEMA-17 size - 200 steps/rev, 12V 350mA.
 And the driver is a TB6600 4A 9-42V Nema 17 Stepper Motor Driver.
@@ -31,13 +33,15 @@ VCC 12 VDC
 GND Power supply ground
 ENA- Not connected
 ENA+ Not connected
-DIR-  GND
-DIR+ GPIO Pin 23 
-PUL-  GND
-PUL+ GPIO Pin 22 
+DIR- GND
+DIR+ GPIO Pin 1
+PUL- GND
+PUL+ GPIO Pin 0 
 A-, A+ Coil 1 stepper motor
 B-, B+ Coil 2 stepper motor
+
 """
+
 
 # GPIO Pins
 PULSE_PIN = 0
@@ -45,74 +49,49 @@ DIRECTION_PIN = 1
 
 # flag to keep track of the number of times the callback
 # was called. When == 2, exit program
-exit_flag = 0
 
 
-def the_callback(data):
-    global exit_flag
-
+async def the_callback(data):
+    print('This should never be called')
     date = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(data[2]))
-    print(f'Motor {data[1]} relative  motion completed at: {date}.')
-    exit_flag += 1
+    print(f'Run motor {data[1]} completed motion at: {date}.')
 
 
-def step_relative(the_board):
-
-    global exit_flag
-
+async def step_continuous(the_board):
     # create an accelstepper instance for a TB6600 motor driver
-    # if you are using a micro stepper controller board:
-    # pin1 = pulse pin, pin2 = direction
-    motor = the_board.set_pin_mode_stepper(interface=1, pin1=PULSE_PIN,
-                                                 pin2=DIRECTION_PIN)
+    motor = await board.set_pin_mode_stepper(interface=1, pin1=0, pin2=1)
 
     # if you are using a 28BYJ-48 Stepper Motor with ULN2003
     # comment out the line above and uncomment out the line below.
-    # motor = the_board.set_pin_mode_stepper(interface=4, pin1=5, pin2=4, pin3=14,
-    # pin4=12)
+    # motor = board.set_pin_mode_stepper(interface=8, pin1=8, pin2=10, pin3=9, pin4=11)
 
-    # set the max speed and acceleration
-    the_board.stepper_set_max_speed(motor, 400)
-    the_board.stepper_set_acceleration(motor, 800)
+    # set the max speed and speed
+    await board.stepper_set_max_speed(motor, 900)
+    await board.stepper_set_speed(motor, 500)
 
-    # set the relative position in steps
-    the_board.stepper_move(motor, 2000)
-
-    print('Running Motor')
     # run the motor
-    the_board.stepper_run(motor, completion_callback=the_callback)
+    await board.stepper_run_speed(motor)
 
     # keep application running
-    while exit_flag == 0:
+    while True:
         try:
-            time.sleep(.2)
+            await asyncio.sleep(.1)
         except KeyboardInterrupt:
-            board.shutdown()
+            await board.shutdown()
             sys.exit(0)
 
-    print('Reversing Direction')
-    the_board.stepper_move(motor, -2000)
-    the_board.stepper_run(motor, completion_callback=the_callback)
 
-    while exit_flag < 2:
-        try:
-            time.sleep(.2)
-        except KeyboardInterrupt:
-            board.shutdown()
-            sys.exit(0)
-
-    the_board.shutdown()
-    sys.exit(0)
-
+# get the event loop
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
 
 # instantiate telemetrix
-board = telemetrix_rpi_pico_2w_serial.TelemetrixRpiPico2wSerial()
-
-
+board = telemetrix_rpi_pico_2w_serial_aio.TelemetrixRpiPico2WSerialAIO(loop=loop)
 try:
     # start the main function
-    step_relative(board)
-    board.shutdown()
+    loop.run_until_complete(step_continuous(board))
+    loop.run_until_complete(board.shutdown())
+
 except KeyboardInterrupt:
-    board.shutdown()
+    loop.run_until_complete(board.shutdown())
     sys.exit(0)

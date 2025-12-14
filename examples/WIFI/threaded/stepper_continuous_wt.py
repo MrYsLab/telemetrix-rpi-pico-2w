@@ -19,19 +19,20 @@
 import sys
 import time
 
-from telemetrix_rpi_pico_2w_serial import telemetrix_rpi_pico_2w_serial
+from telemetrix_rpi_pico_2w_wifi import telemetrix_rpi_pico_2w_wifi
 
 """
 Run a motor continuously without acceleration
 """
 
 # Create a Telemetrix instance.
-board = telemetrix_rpi_pico_2w_serial.TelemetrixRpiPico2wSerial()
+board = telemetrix_rpi_pico_2w_wifi.TelemetrixRpiPico2WiFi(ip_address='192.168.2.212')
 
 
 # for continuous motion, the callback is not used, but provided to meet the
 # API needs.
 def the_callback(data):
+    print('This should never be called')
     date = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(data[2]))
     print(f'Run motor {data[1]} completed motion at: {date}.')
 

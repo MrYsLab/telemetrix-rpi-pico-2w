@@ -18,11 +18,10 @@
 import sys
 import time
 
-from telemetrix_rpi_pico_2w_serial import telemetrix_rpi_pico_2w_serial
+from telemetrix_rpi_pico_2w_wifi import telemetrix_rpi_pico_2w_wifi
 
 """
-Run a motor to an absolute position. Server will send a callback notification 
-when motion is complete.
+Run a motor to a relative position.
 
 Motor used to test is a NEMA-17 size - 200 steps/rev, 12V 350mA.
 And the driver is a TB6600 4A 9-42V Nema 17 Stepper Motor Driver.
@@ -32,13 +31,12 @@ VCC 12 VDC
 GND Power supply ground
 ENA- Not connected
 ENA+ Not connected
-DIR- GND
+DIR-  GND
 DIR+ GPIO Pin 23 
-PUL- GND
+PUL-  GND
 PUL+ GPIO Pin 22 
 A-, A+ Coil 1 stepper motor
 B-, B+ Coil 2 stepper motor
-
 """
 
 # GPIO Pins
@@ -52,80 +50,63 @@ exit_flag = 0
 
 def the_callback(data):
     global exit_flag
+
     date = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(data[2]))
-    print(f'Motor {data[1]} absolute motion completed at: {date}.')
+    print(f'Motor {data[1]} relative  motion completed at: {date}.')
     exit_flag += 1
 
 
-def running_callback(data):
-    if data[1]:
-        print('The motor is running.')
-    else:
-        print('The motor IS NOT running.')
-
-
-def step_absolute(the_board):
+def step_relative(the_board):
 
     global exit_flag
-    # create an accelstepper instance for a TB6600 motor drive
+
+    # create an accelstepper instance for a TB6600 motor driver
     # if you are using a micro stepper controller board:
     # pin1 = pulse pin, pin2 = direction
     motor = the_board.set_pin_mode_stepper(interface=1, pin1=PULSE_PIN,
                                                  pin2=DIRECTION_PIN)
 
-    # if you are using a 28BYJ-48 Stepper Motor with ULN2003
-    # comment out the line above and uncomment out the line below.
-    # motor = the_board.set_pin_mode_stepper(interface=4, pin1=5, pin2=4, pin3=14,
-    # pin4=12)
-
-    # the_board.stepper_is_running(motor, callback=running_callback)
-    time.sleep(.5)
-
     # set the max speed and acceleration
-    the_board.stepper_set_current_position(0, 0)
     the_board.stepper_set_max_speed(motor, 400)
     the_board.stepper_set_acceleration(motor, 800)
 
-    # set the absolute position in steps
-    the_board.stepper_move_to(motor, 2000)
+    # set the relative position in steps
+    the_board.stepper_move(motor, 2000)
 
+    print('Running Motor')
     # run the motor
-    print('Starting motor...')
     the_board.stepper_run(motor, completion_callback=the_callback)
-    time.sleep(.2)
-    the_board.stepper_is_running(motor, callback=running_callback)
-    time.sleep(.2)
-    while exit_flag == 0:
-        time.sleep(.2)
-
-    the_board.stepper_set_current_position(0, 0)
-    the_board.stepper_set_max_speed(motor, 400)
-    the_board.stepper_set_acceleration(motor, 800)
-    # set the absolute position in steps
-    print('Running motor in opposite direction')
-    the_board.stepper_move_to(motor, -2000)
-
-    the_board.stepper_run(motor, completion_callback=the_callback)
-    time.sleep(.2)
-    the_board.stepper_is_running(motor, callback=running_callback)
-    time.sleep(.2)
 
     # keep application running
+    while exit_flag == 0:
+        try:
+            time.sleep(.2)
+        except KeyboardInterrupt:
+            the_board.shutdown()
+            sys.exit(0)
+
+    print('Reversing Direction')
+    the_board.stepper_move(motor, -2000)
+    the_board.stepper_run(motor, completion_callback=the_callback)
+
     while exit_flag < 2:
         try:
             time.sleep(.2)
         except KeyboardInterrupt:
             the_board.shutdown()
             sys.exit(0)
+
     the_board.shutdown()
     sys.exit(0)
 
 
 # instantiate telemetrix
-board = telemetrix_rpi_pico_2w_serial.TelemetrixRpiPico2wSerial()
+board = telemetrix_rpi_pico_2w_wifi.TelemetrixRpiPico2WiFi(ip_address='192.168.2.212')
+
+
 try:
     # start the main function
-    step_absolute(board)
+    step_relative(board)
     board.shutdown()
 except KeyboardInterrupt:
     board.shutdown()
