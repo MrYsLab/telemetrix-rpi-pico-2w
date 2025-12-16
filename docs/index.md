@@ -4,71 +4,46 @@ font-size:3em"><i>Telemetrix User's Guide For The</i></div>
 font-size:3em"><i>Raspberry Pi Pico 2W</i></div>
 ![](./images/tmx2.png)
 
+<br>
 
 *Telemetry* is a system for collecting data on a remote device and then 
 automatically transmitting the collected data back to local receiving equipment for 
 processing. 
 
-With Telemetrix, you can do things such as establish a GPIO pin to run a DC motor, 
-communicate with your favorite i2c device, and receive automatic data updates from an 
-analog 
-or digital device.
+Telemetrix is a telemetry system that allows you to remotely interact with the GPIO 
+pins on you Raspberry Pi Pico 2W. If you set up a GPIO as a digital or analog input pin,
+Telemetrix will autonomously send reports for data changes. It also allows you to 
+interact with your favorite i2c device, control stepper and servo motors, control 
+NeoPixel strips, monitor DHT temperature sensors, and monitor HC-SR04 SONAR distance 
+sensors.
 
+How does this all work? 
 Telemetrix for the Raspberry Pi Pico consists of two main software components. 
-A resident Pico server, and a client, residing on a Windows, Linux, or macOS 
-PC. The client and server communicates over either WiFi or Serial/USB transport.
+A resident Pico 2W server, and a client, that you write using the Python APIs that 
+runs on a Windows, Linux or macOS computer. The client and server communicate over 
+either WiFi or Serial/USB transport.
 
 The server is implemented using the 
 [Arduino Pico Core,](https://github.com/earlephilhower/arduino-pico?tab=readme-ov-file)
 providing full access to all Pico processor features. Install either the WiFi or 
 Serial/USB server on the Pico 2W using the Arduino IDE.
 
-The client is implemented in Python using one of the Python APIs. For each transport 
-type you may choose to use a threaded or asyncio concurrency model.
+Clients are created using one of the Python APIs. API's are provided to support both 
+threaded and asyncio concurrency models for both WiFi and Serial transports.
 
-Links to the APIs are provided below.
-
-  * [WiFi Threaded](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_wifi/index.html)
-  * [WiFi Asyncio](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_wifi_aio/index.html)
-
-  * [Serial Threaded](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_serial/index.html)
-  * [Serial Asyncio](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_serial_aio/index.html)
-
-
-The server and client are physically connected using a USB cable, and they
-communicate with each other over a serial transport running at 115000 baud.
-
-With Telemetrix, you can do things such as establish a GPIO pin as a PWM output pin, 
-and set its value to run a DC motor, or perhaps establish the pin as a control pin for a 
-NeoPixel strip. With 
-Telemetrix, you can even have the Pico communicate with your favorite i2c device.
-
-
-Telemetrix gives the appearance that the Pico is being _programmed_ using a
-[Traditional Python API.](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico/blob/master/html/telemetrix_rpi_pico/index.html)
-or [Python asyncio API.](https://htmlpreview.github.io/?https://github.com/MrYsLab/tmx-pico-aio/blob/master/html/tmx_pico_aio/index.html#tmx_pico_aio.tmx_pico_aio.TmxPicoAio.reset_board)
-But in fact, the Pico is running a fixed application and is not programmed in the 
-traditional sense. Once the server is installed on the Pico, code is not generated nor 
-uploaded to the Pico. Instead, 
-the Pico awaits commands from the server and interprets and acts upon those commands.
-
-If the client commands the Pico to establish a GPIO pin as an input, the Pico 
-autonomously monitors the pin for data changes. When a change is detected, the 
-Pico forms a report and relays it to the client over the serial link.
-
-
-<br>
 
 # Summary Of Major Features
 
-* Applications are programmed using conventional Python 3.7 or greater.
+* Applications are programmed using conventional Python 3.10 or greater.
 * All Data change events are reported asynchronously via user registered callback functions. 
 * Each data change event is time-stamped.
-* Online API Reference Documentation is provided:
-    * For the [Threaded Python Client.](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico/blob/master/html/telemetrix_rpi_pico/index.html)
-    * For the [Asyncio Python Client.](https://htmlpreview.github.io/?https://github.com/MrYsLab/tmx-pico-aio/blob/master/html/tmx_pico_aio/index.html)
-* A complete set of working examples is provided for both [traditional Python](https://github.com/MrYsLab/telemetrix-rpi-pico/tree/master/examples)
-  and the [asyncio version.](https://github.com/MrYsLab/tmx-pico-aio/tree/master/examples)
+* Online API Reference Documentation is provided for all four API's.:
+    
+    * For the [Threaded WiFi Python Client.](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_wifi/index.html)
+    * For the [Asyncio WiFi Python Client.](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_wifi_aio/index.html)
+    * For the [Threaded Serial Python Client.](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_serial/index.html)
+    * For the [Asyncio Serial Python Client.](ttps://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_serial_aio/index.html)
+* A complete [set of working examples](https://github.com/MrYsLab/telemetrix-rpi-pico-2w/tree/master/examples) is provided for each of the four client APIs.
 * Integrated debugging methods are included as part of the Pico Server 
   SDK source code to aid in adding new features.
 
