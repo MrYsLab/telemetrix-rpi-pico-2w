@@ -10,18 +10,19 @@ font-size:3em"><i>Raspberry Pi Pico 2W</i></div>
 automatically transmitting the collected data back to local receiving equipment for 
 processing. 
 
-Telemetrix is a telemetry system that allows you to remotely interact with the GPIO 
-pins on you Raspberry Pi Pico 2W. If you set up a GPIO as a digital or analog input pin,
-Telemetrix will autonomously send reports for data changes. It also allows you to 
-interact with your favorite i2c device, control stepper and servo motors, control 
-NeoPixel strips, monitor DHT temperature sensors, and monitor HC-SR04 SONAR distance 
-sensors.
+Telemetrix is a telemetry system that allows you to remotely 
+interact with the GPIO pins on your Raspberry Pi Pico 2W. 
+If you set up a GPIO pin as a digital or analog input, Telemetrix will 
+autonomously send reports for all detected data changes.  
+It also allows you to interact with your favorite i2c device, 
+control stepper and servo motors, control NeoPixel strips, monitor DHT 
+temperature sensors, and monitor HC-SR04 SONAR distance sensors.
 
-How does this all work? 
-Telemetrix for the Raspberry Pi Pico consists of two main software components. 
-A resident Pico 2W server, and a client, that you write using the Python APIs that 
-runs on a Windows, Linux or macOS computer. The client and server communicate over 
-either WiFi or Serial/USB transport.
+How does this all work? Telemetrix for the Raspberry Pi Pico 2W 
+consists of two main software components. A resident Pico 2W server and a 
+client that is written using the Python APIs, running on a 
+Windows, Linux, or macOS computer. 
+The client and server communicate over either a WiFi or a Serial/USB transport.
 
 The server is implemented using the 
 [Arduino Pico Core,](https://github.com/earlephilhower/arduino-pico?tab=readme-ov-file)
@@ -34,8 +35,8 @@ threaded and asyncio concurrency models for both WiFi and Serial transports.
 
 # Summary Of Major Features
 
-* Applications are programmed using conventional Python 3.10 or greater.
-* All Data change events are reported asynchronously via user registered callback functions. 
+* Applications are written in conventional Python 3.10 or later.
+* All Data change events are reported asynchronously via user-registered callback functions. 
 * Each data change event is time-stamped.
 * Online API Reference Documentation is provided for all four API's.:
     
@@ -44,8 +45,7 @@ threaded and asyncio concurrency models for both WiFi and Serial transports.
     * For the [Threaded Serial Python Client.](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_serial/index.html)
     * For the [Asyncio Serial Python Client.](ttps://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_serial_aio/index.html)
 * A complete [set of working examples](https://github.com/MrYsLab/telemetrix-rpi-pico-2w/tree/master/examples) is provided for each of the four client APIs.
-* Integrated debugging methods are included as part of the Pico Server 
-  SDK source code to aid in adding new features.
+* Integrated debugging methods are included in the Pico Server source code to aid in adding new features.
 
 # Intuitive And Easy To Use APIs
 
@@ -68,12 +68,9 @@ parameter is named _data_.
      
             # Your code here.
 ```
-Upon receiving a data change report message from the Pico,
-the client 
-creates a 
-list containing the data describing the change event and calls the associated callback 
-function 
-passing in the list as a parameter.
+Upon receiving a data change report message from the Pico, 
+the client creates a list containing the data describing the change 
+event and calls the associated callback function, passing the list as a parameter.
 
 For a digital data change, the list would contain the following:
     
@@ -96,7 +93,7 @@ Here is a Telemetrix example that monitors several digital input pins:
 import sys
 import time
 
-from telemetrix_rpi_pico import telemetrix_rpi_pico
+from telemetrix_rpi_pico_2w_serial import telemetrix_rpi_pico_2w_serial
 
 """
 Monitor 4 digital input pins with pull-up enabled for each
@@ -104,8 +101,8 @@ Monitor 4 digital input pins with pull-up enabled for each
 
 
 # Callback data indices
-# When the callback function is called, the client fills in 
-# the data parameter. Data is a list of values, and the following are 
+# When the callback function is called, the client fills in
+# the data parameter. Data is a list of values, and the following are
 # indexes into the list to retrieve report information
 
 CB_PIN_MODE = 0 # The mode of the reporting pin (input, output, PWM, etc.)
@@ -126,7 +123,7 @@ def the_callback(data):
           f'Value: {data[CB_VALUE]} Time Stamp: {date}')
 
 
-board = telemetrix_rpi_pico.TelemetrixRpiPico()
+board = telemetrix_rpi_pico_2w_serial.TelemetrixRpiPico2wSerial()
 board.set_pin_mode_digital_input_pullup(12, the_callback)
 board.set_pin_mode_digital_input_pullup(13, the_callback)
 board.set_pin_mode_digital_input_pullup(14, the_callback)
@@ -138,43 +135,37 @@ try:
 except KeyboardInterrupt:
     board.shutdown()
     sys.exit(0)
+
 ```
 
 And here is some sample output:
 
 ```python
-TelemetrixRpiPico:  Version 0.7
+TelemetrixRpiPicoW2:  Version 0.0.9
 
-Copyright (c) 2020 Alan Yorinks All Rights Reserved.
+Copyright (c) 2020-2025 Alan Yorinks All Rights Reserved.
 
 Opening all potential serial ports...
 	/dev/ttyACM0
 Serial compatible device found and connected to /dev/ttyACM0
 Retrieving pico ID...
-Pico Unique ID: [230, 96, 68, 48, 67, 85, 0, 0]
+Pico Unique ID: [87, 237, 12, 180, 171, 71, 154, 172]
 
-Retrieving Telemetrix4pico firmware ID...
-Telemetrix4pico firmware version: 0.3
-Report Type: 2 Pin: 12 Value: 1 Time Stamp: 2021-03-14 13:34:52
-Report Type: 2 Pin: 13 Value: 1 Time Stamp: 2021-03-14 13:34:52
-Report Type: 2 Pin: 14 Value: 1 Time Stamp: 2021-03-14 13:34:52
-Report Type: 2 Pin: 15 Value: 1 Time Stamp: 2021-03-14 13:34:52
-Report Type: 2 Pin: 13 Value: 0 Time Stamp: 2021-03-14 13:35:21
-Report Type: 2 Pin: 13 Value: 1 Time Stamp: 2021-03-14 13:35:22
-Report Type: 2 Pin: 14 Value: 0 Time Stamp: 2021-03-14 13:35:29
-Report Type: 2 Pin: 14 Value: 1 Time Stamp: 2021-03-14 13:35:31
-Report Type: 2 Pin: 15 Value: 0 Time Stamp: 2021-03-14 13:35:33
-Report Type: 2 Pin: 15 Value: 1 Time Stamp: 2021-03-14 13:35:34
+Retrieving Telemetrix4pico2W firmware ID...
+Telemetrix4pico2W firmware version: 1.0
+Report Type: 2 Pin: 12 Value: 1 Time Stamp: 2025-12-16 14:45:36
+Report Type: 2 Pin: 13 Value: 1 Time Stamp: 2025-12-16 14:45:36
+Report Type: 2 Pin: 14 Value: 1 Time Stamp: 2025-12-16 14:45:36
+Report Type: 2 Pin: 15 Value: 1 Time Stamp: 2025-12-16 14:45:36
+Report Type: 2 Pin: 12 Value: 0 Time Stamp: 2025-12-16 14:45:43
+Report Type: 2 Pin: 12 Value: 1 Time Stamp: 2025-12-16 14:45:44
+Report Type: 2 Pin: 12 Value: 0 Time Stamp: 2025-12-16 14:45:44
+Report Type: 2 Pin: 12 Value: 1 Time Stamp: 2025-12-16 14:45:44
+Report Type: 2 Pin: 14 Value: 0 Time Stamp: 2025-12-16 14:45:46
+Report Type: 2 Pin: 14 Value: 1 Time Stamp: 2025-12-16 14:45:47
+Report Type: 2 Pin: 13 Value: 0 Time Stamp: 2025-12-16 14:45:49
+Report Type: 2 Pin: 13 Value: 1 Time Stamp: 2025-12-16 14:45:50
 
 
 ```
-A [similar example](https://github.com/MrYsLab/tmx-pico-aio/blob/master/examples/digital_input_pullup.py)
-is provided for asyncio.
 
-
-<br>
-<br>
-
-Copyright (C) 2022 Alan Yorinks. All Rights Reserved.
-
-**Last updated 1 July 2022**
