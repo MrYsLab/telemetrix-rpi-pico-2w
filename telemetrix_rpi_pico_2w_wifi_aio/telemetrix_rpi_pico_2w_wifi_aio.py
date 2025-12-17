@@ -99,14 +99,14 @@ class TelemetrixRpiPico2WiFiAio:
             if self.shutdown_on_exception:
                 raise RuntimeError('An IP Address MUST BE SPECIFIED')
 
-        # check to make sure that Python interpreter is version 3.7 or greater
+        # check to make sure that Python interpreter is version 3.10 or greater
         python_version = sys.version_info
         if python_version[0] >= 3:
-            if python_version[1] >= 7:
+            if python_version[1] >= 10:
                 pass
             else:
                 if self.shutdown_on_exception:
-                    raise RuntimeError("ERROR: Python 3.7 or greater is "
+                    raise RuntimeError("ERROR: Python 3.10 or greater is "
                                    "required for use of this program.")
 
         # The report_dispatch dictionary is used to process

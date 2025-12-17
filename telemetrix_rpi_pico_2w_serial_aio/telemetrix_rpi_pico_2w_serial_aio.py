@@ -75,14 +75,14 @@ class TelemetrixRpiPico2WSerialAIO:
         :para vid: Raspberry Pi Pico Vendor ID (Not checked if com port is specified)
         """
 
-        # check to make sure that Python interpreter is version 3.7 or greater
+        # check to make sure that Python interpreter is version 3.10 or greater
         python_version = sys.version_info
         if python_version[0] >= 3:
-            if python_version[1] >= 8:
-                if python_version[2] >= 3:
+            if python_version[1] >= 10:
+                if python_version[2] >= 0:
                     pass
             else:
-                raise RuntimeError("ERROR: Python 3.8.3 or greater is "
+                raise RuntimeError("ERROR: Python 3.10 or greater is "
                                    "required for use of this program.")
 
         # save input parameters as instance variables
