@@ -172,3 +172,5 @@ Report Type: 2 Pin: 13 Value: 1 Time Stamp: 2025-12-16 14:45:50
 
 ```
 
+The following section explains how to install both the server and client APIs on your
+system.
