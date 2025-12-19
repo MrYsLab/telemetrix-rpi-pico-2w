@@ -1,8 +1,33 @@
+## The Pico W2 PID and VID
+Each Pico device has a product ID (PID) and a vendor ID (VID) burned 
+into the device. When your application starts, these values are used to 
+verify that it is connecting to the correct type of board.
+For the Pico 2W, it is assumed that the PID = 61455 and the VID = 11914.
+
+For the Pico 2W, it is assumed that the PID = 61455 and the VID = 11914.
+
+If your application fails to connect to the Pico, please check the PID 
+and VID values being returned from the device.
+
+To do so, execute the following command:
+
+**python -m tools.list_ports**
+
+This command lists all the possible comports and device information.
+
+For the Pico, you may see something that looks like this:
+
+**Description: Pico 2W - Pico Serial  Device:/dev/ttyACM0  pid=61455  vid=11914**
+
+If the PID and VID do not match the values above, you may set them using the pid 
+and vid parameters when instantiating the API class for the first time.
+
+
 ## A Quick Start To Developing Applications
 
 ### Examples
-Examples are provided for each of the APIs and are a good source for
-gaining an understanding how applications are implemented using Telemetrix.
+Examples are provided for each API and are a good source for understanding how 
+applications are implemented using Telemetrix.
 
 * [Serial Threaded](https://github.com/MrYsLab/telemetrix-rpi-pico-2w/tree/master/examples/Serial/threaded)
 
@@ -14,15 +39,16 @@ gaining an understanding how applications are implemented using Telemetrix.
 
 ## Downloading And Running The Examples
 
-Go to the [telemetrix-rpi-pico-2w](https://github.com/MrYsLab/telemetrix-rpi-pico-2w) GitHub repository. Click on 
-the green button in the upper right corner and download the zip file.
+Go to the [telemetrix-rpi-pico-2w](https://github.com/MrYsLab/telemetrix-rpi-pico-2w) GitHub repository. Click the green button 
+in the upper-right corner and download the ZIP file.
 
 ![](./images/examples.png)
 
-Next, expand the zip file and go to the examples directory. Select any of the examples that you wish to run. 
+Next, expand the ZIP file and open the examples directory. 
+Select any of the examples that you wish to run.
 
 ## Application Templates
-Below are a set of application templates to help get you started.
+Below are application templates to help you get started.
 The templates show how to instantiate each API. For asyncio, the templates
 
 ### Serial Threaded
@@ -73,14 +99,13 @@ except:
 
 ### Serial Asyncio
 
-For asyncio, im addition to importing the API, we implement the application
+For asyncio, in addition to importing the API, we implement the application
 in an asyncio function.
 
-After obtaining an asyncio loop, we instantiate the API, passing in the loop we
-obtained.
+After obtaining an asyncio loop, we instantiate the API, passing in the loop.
 
-We run the application by calling loop.run_until_complete(my_app(board)), and 
-end by gracefully shutting the application.
+We run the application by calling loop.run_until_complete(my_app(board)) 
+and then gracefully shut it down.
 
 ```angular2html
 
@@ -120,14 +145,14 @@ except KeyboardInterrupt:
 
 ### WiFi Asyncio
 
-For asyncio, im addition to importing the API, we implement the application
+For asyncio, in addition to importing the API, we implement the application
 in an asyncio function.
 
-After obtaining an asyncio loop, we instantiate the API, passing in the loop we
-obtained, and the IP address assigned by our router.
+After obtaining an asyncio loop, we instantiate the API, 
+passing in the loop we received and the IP address assigned by our router.
 
-We run the application by calling loop.run_until_complete(my_app(board)), and 
-end by gracefully shutting the application.
+We run the application by 
+calling loop.run_until_complete(my_app(board)) and then gracefully shut it down.
 
 ```angular2html
 
