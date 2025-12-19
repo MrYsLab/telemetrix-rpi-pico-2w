@@ -15,5 +15,8 @@ You may need to add your login to the dialout group to upload to the Arduino.
 
 To do so, follow [these instructions](https://support.arduino.cc/hc/en-us/articles/360016495679-Fix-port-access-on-Linux).
 
+## Install the boards manager for the Raspberry Pi Pico 2W
+
+Follow [these instructions](https://arduino-pico.readthedocs.io/en/latest/install.html) to install the board manager.
 
 <br>

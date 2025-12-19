@@ -43,7 +43,7 @@ threaded and asyncio concurrency models for both WiFi and Serial transports.
     * For the [Threaded WiFi Python Client.](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_wifi/index.html)
     * For the [Asyncio WiFi Python Client.](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_wifi_aio/index.html)
     * For the [Threaded Serial Python Client.](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_serial/index.html)
-    * For the [Asyncio Serial Python Client.](ttps://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_serial_aio/index.html)
+    * For the [Asyncio Serial Python Client.](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_serial_aio/index.html)
 * A complete [set of working examples](https://github.com/MrYsLab/telemetrix-rpi-pico-2w/tree/master/examples) is provided for each of the four client APIs.
 * Integrated debugging methods are included in the Pico Server source code to aid in adding new features.
 
