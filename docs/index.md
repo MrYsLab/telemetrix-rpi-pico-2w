@@ -20,7 +20,7 @@ temperature sensors, and monitor HC-SR04 SONAR distance sensors.
 
 How does this all work? Telemetrix for the Raspberry Pi Pico 2W 
 consists of two main software components. A resident Pico 2W server and a 
-client that is written using the Python APIs, running on a 
+client that is written using a Python API, running on a 
 Windows, Linux, or macOS computer. 
 The client and server communicate over either a WiFi or a Serial/USB transport.
 
@@ -74,13 +74,16 @@ event and calls the associated callback function, passing the list as a paramete
 
 For a digital data change, the list would contain the following:
     
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**[pin_type=digital input, pin_number, pin_value, time stamp]**
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**[report_type=digital input, pin_number, 
+pin_value, time stamp]**
 
-Each input pin type returns a unique list, as described in the API.
+Each input report returns a unique list, as described in the API.
 
-The first element in the list is the pin type. Knowing the pin type, you may 
+The first element in the list is the report type. Knowing the report type, you may 
 optionally have a single callback function handle multiple event types using the 
-pin type to identify the callback source.
+report type to identify the callback source.
+
+Report types are defined [here](https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/a998a6eb3b3f265ad23d14bbc43319ad773c2ae3/telemetrix_rpi_pico_2w_common/private_constants.py#L90).
 
 ### 2. Have your application sit in a loop, waiting for notifications.
 
@@ -105,7 +108,7 @@ Monitor 4 digital input pins with pull-up enabled for each
 # the data parameter. Data is a list of values, and the following are
 # indexes into the list to retrieve report information
 
-CB_PIN_MODE = 0 # The mode of the reporting pin (input, output, PWM, etc.)
+CB_REPORT_TYPE = 0 # The mode of the reporting pin (input, output, PWM, etc.)
 CB_PIN = 1      # The GPIO pin number associated with this report
 CB_VALUE = 2    # The data value reported
 CB_TIME = 3     # A time stamp when the data change occurred
@@ -119,7 +122,7 @@ def the_callback(data):
     :param data: [pin mode, pin, current reported value, pin_mode, timestamp]
     """
     date = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(data[CB_TIME]))
-    print(f'Report Type: {data[CB_PIN_MODE]} Pin: {data[CB_PIN]} '
+    print(f'Report Type: {data[CB_REPORT_TYPE]} Pin: {data[CB_PIN]} '
           f'Value: {data[CB_VALUE]} Time Stamp: {date}')
 
 
