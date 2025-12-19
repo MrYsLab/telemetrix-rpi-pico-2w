@@ -1,6 +1,5 @@
-## Add The Telemetrix4RPiPico2W Library To The IDE
 
-1. Open the Arduino IDE and click on the library icon.
+1. Open the Arduino IDE, then click the library icon.
 
     ![](images/arduino_lib_install.png)
 
