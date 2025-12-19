@@ -1,0 +1,40 @@
+site_name: The Telemetrix User's Guide For The Raspberry Pi Pico 2W
+repo_url: https://github.com/MrYsLab/telemetrix-rpi-pico-2w
+copyright: > # should remain a link to the original theme
+  Copyright &copy; 2025 Alan Yorinks &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  Last 
+  Modified:
+  December 31, 2025<br>
+
+nav:
+  - Introduction: index.md
+  - Installation:
+      - Server:
+          - Install The Arduino IDE: arduino_ide.md
+          - Install the Telemetrix4RpiPico2w Server Library Into The Arduino IDE: server_library_installation.md
+          - Select A Server From the Arduino IDE Examples Menu: server_selection.md
+          - Server Configuration and Upload: server_config.md
+      - Client:
+          - Install Python 3.10+: python_3_verify.md
+          - Create A Python Virtual Environment: venv.md
+          - Installing The Python Client APIs: install_telemetrix.md
+  - Usage:
+      - Developing With Telemetrix:
+          - General Principles: about_the_apis.md
+          - Application Creation: app_creation.md
+  - Adding New Features: extend.md
+  - About: about.md
+  - License: license.md
+# theme: windmill
+
+plugins:
+  - search
+  - open-in-new-tab
+
+
+
+theme:
+  name: 'material'
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.footer
