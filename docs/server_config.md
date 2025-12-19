@@ -19,10 +19,11 @@ Edit the sketch and place your router's SSID between the quotes.
 
 Edit the sketch and place your router's PASSWORD between the quotes.
 
+Save your changes.
+
 ## Upload The Server To The Pico
 
-Once you have selected the desired server and configured it and saved it, 
-select the board and port on the Arduino IDE.
+Select the board and port on the Arduino IDE.
 
 
 
@@ -32,7 +33,7 @@ select the board and port on the Arduino IDE.
 Next, plug your Pico into a USB port and upload the server by pressing the upload
 button on the Arduino IDE.
 
-![](images/select_board_1.png)
+![](images/select_board_2.png)
 
 ## Getting The Assigned Router IP Address
 If you selected the WiFi server, open the Arduino IDE's serial monitor by
@@ -40,8 +41,9 @@ clicking the serial monitor button.
 
 ![](images/serial_monitor.png)
 
-Repower the Pico, and the router's assigned IP address will appear
-in the serial monitor windows of the Arduino IDE.
+Repower the Pico, and the router's assigned IP address will 
+appear in the Arduino IDE's serial monitor window.
+
 
 ![](images/ip_address.png)
 
