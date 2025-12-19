@@ -4,7 +4,7 @@ Arduino IDE version 2.1.X is used to upload a WiFi or serial server to the Pico.
 also 
 used to modify server source code when configuration is necessary.
 
-To install a copy of the IDE, go to the [Arduino Software Download page](https://www.arduino.cc/en/software), and 
+To install a copy of the IDE, go to the [Arduino Software Download page](https://www.arduino.cc/en/software) and 
 select the version for your 
 operating system. Follow the installation instructions.
 
