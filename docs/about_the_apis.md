@@ -11,10 +11,66 @@ by calling one of the _set_pin_mode_XXX_ methods for the pin. For output modes, 
 to perform a _write_ operation and have not first set the pin's mode, a RunTimeError 
 exception is thrown.
 
+### Valid GPIO Pin Numbers
+
+GPIO Pins 0 through 22, 26, 27, and 28 are valid pins to use.
+The board LED is GPIO pin 64.
+
+### ADC Pins
+ADC pins are specified by their corresponding ADC number, 
+not their GPIO pin number.
+
+ADC numbers are mapped as follows:
+
+               ADC0 = GPIO 26 (Physical Pin 31)
+               ADC1 = GPIO 27 (Physical Pin 32)
+               ADC2 = GPIO 28 (Physical Pin 34)
+
+               Internal Mapping
+               ADC3 = GPIO 29 (Physical Pin 35) ADC Reference Voltage
+               ADC4 = GPIO 30 (No Physical pin - mapped internally)
+                              CPU temperature\
+
+### I2C Pins
+Telemetrix supports two i2c ports, 0 and 1. SDA and SCL 
+are mapped to GPIO pins as follows:
+
+#### SDA Pins
+  * Port 0 = 4
+  * Port 1 = 26 
+  
+#### SCL Pins
+  * Port 0 = 5
+  * Port 1 = 27
+
+### SPI Pins
+Telemetrix supports two SPI ports, 0 and 1. 
+Pins are mapped as follows:
+
+  * Chip Select(**CS**) may be any valid GPIO pin number.
+  * **MISO**: SPI data receive pin
+    * spi0 = 16 
+    * spi1 = 12
+
+  * **MOSI**: SPI data transmit pin
+    * spi0 = 19
+    * spi1 = 15
+
+  * Clock Pin (**CLK**): 
+    * spi0 = 18 
+    * spi1 = 14
+
+### Device Number Limits
+* Stepper motors: **4**
+* DHT Temperature/Humidity Sensors: **2**
+* HC-SR04 Sonar Distance Sensors: **4**
+
+
+
 ### Callbacks
 
 When you set a pin to an input mode, you must register a callback function to 
-notify the application of any data changes on the pin.
+notify the application of any changes to the pin's data.
 
 **Telemetrix does not support polling or direct read 
 methods for inputs. Instead, as soon as a data change is detected, 
@@ -22,16 +78,17 @@ the pin's associated callback is called, allowing for immediate response
 to data changes and, in general, simpler application design.**
 
 When you create a callback function, you must specify a single 
-input parameter. The client automatically fills in this parameter as a 
-list describing the data change.
+input parameter. The client automatically populates this parameter 
+with a list describing the data change.
 
-The callback data list's content varies by input pin type and is described in 
-detail for each set_pin_mode_XXX method in the API documentation.
+The callback data list's contents vary by input pin type and are described in detail 
+for each set_pin_mode_XXX method in the API documentation.
 
 #### Callback Data Format
-The first element in the list identifies the report type, and the last element is the 
-timestamp of the data change. Other elements identify the GPIO pin and the 
-current data value, along with any other relevant information.
+The first element in the list identifies the report type, and the last element 
+is the 
+timestamp of the data change. Other elements identify the GPIO pin, the 
+current data value, and any other relevant information.
 
 
 #### Report Types
