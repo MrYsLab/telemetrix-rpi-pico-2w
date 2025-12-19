@@ -13,7 +13,7 @@ exception is thrown.
 
 ### Valid GPIO Pin Numbers
 
-GPIO Pins 0 through 22, 26, 27, and 28 are valid pins to use.
+GPIO Pins 0 through 22, and 26 through 28 are valid pins to use.
 The board LED is GPIO pin 64.
 
 ### ADC Pins
@@ -126,15 +126,15 @@ board.set_pin_mode_digital_input_pullup(12, the_callback)
 
 ### A Callback Function Example
 
-Here is the implementation for the callback method that services pin 12. 
+Here is the implementation for the callback function that services pin 12. 
 It prints out a notification of the change to the console. Your callback function 
 may store the latest value or issue a command, such as to control an LED 
 or another device.
 
-**NOTE:** For the threaded concurrency model, 
-the callback function is blocking, so keep it as short as 
+**NOTE:** Keep the callback function as short as 
 possible. If you need to perform extended processing, 
-create a separate thread so your application can continue.
+create a separate thread or task so your application can continue
+without blocking.
 
 ```python
 
