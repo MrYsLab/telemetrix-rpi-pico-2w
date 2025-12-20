@@ -32,7 +32,7 @@ from telemetrix_rpi_pico_2w_wifi_aio.telemetrix_pico_2w_wifi_aio_socket import (
 class TelemetrixRpiPico2WiFiAio:
     """
     This class exposes and implements the telemetrix API for the
-    Raspberry Pi Pico W using Python asyncio for concurrency.
+    Raspberry Pi Pico 2W using Python asyncio for concurrency.
 
     It includes the public API methods as well as
     a set of private methods.
@@ -289,14 +289,17 @@ class TelemetrixRpiPico2WiFiAio:
 
         # neopixel data
         self.number_of_pixels = None
+        self.number_of_pixels_rgbw = None
 
         self.neopixels_initiated = False
+        self.neopixels_initiated_rgbw = False
 
         # generic asyncio task holder
         self.the_task = None
 
-        print(f"TelemetrixRpiPicoWAio:  Version {PrivateConstants.TELEMETRIX_VERSION}\n\n"
-              f"Copyright (c) 2022 Alan Yorinks All Rights Reserved.\n")
+        print(f"TelemetrixRpiPico2WAioWiFi:  Version"
+              f" {PrivateConstants.TELEMETRIX_VERSION}\n\n"
+              f"Copyright (c) 2025 Alan Yorinks All Rights Reserved.\n")
 
         print('Establishing IP connection...')
 
@@ -706,6 +709,105 @@ class TelemetrixRpiPico2WiFiAio:
         command = [PrivateConstants.SHOW_NEOPIXELS]
         await self._send_command(command)
 
+    async def neo_pixel_set_value_rgbw(self, pixel_number, r=0, g=0, b=0,
+                                       w=0, auto_show=False):
+        """
+        Set the selected pixel in the pixel array on the Pico to
+        the value provided.
+
+        :param pixel_number: pixel number
+
+        :param r: red value 0-255
+
+        :param g: green value 0-255
+
+        :param b: blue value 0-255
+
+        :param w: white value 0-255
+
+        :param auto_show: call show automatically
+
+        """
+        if not self.neopixels_initiated_rgbw:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError('You must call set_pin_mode_neopixel_rgbw first')
+
+        if not 0 <= pixel_number < self.number_of_pixels_rgbw:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError('Pixel number is out of legal range')
+
+        for color in [r, g, b, w]:
+            if not 0 <= color <= 255:
+                if self.shutdown_on_exception:
+                    await self.shutdown()
+                raise RuntimeError('RGBW values must be in the range of 0-255')
+
+        command = [PrivateConstants.SET_NEOPIXEL_RGBW, pixel_number, r, g, b, w,
+                   auto_show]
+        await self._send_command(command)
+
+        if auto_show:
+            await self.neopixel_show_rgbw()
+
+    async def neopixel_clear_rgbw(self, auto_show=True):
+        """
+        Clear all pixels
+
+        :param auto_show: call show automatically
+
+        """
+        if not self.neopixels_initiated_rgbw:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError('You must call set_pin_mode_neopixel_rgbw first')
+        command = [PrivateConstants.CLEAR_NEOPIXELS_RGBW, auto_show]
+        await self._send_command(command)
+        if auto_show:
+            await self.neopixel_show_rgbw()
+
+    async def neopixel_fill_rgbw(self, r=0, g=0, b=0, w=0, auto_show=True):
+        """
+        Fill all pixels with specified value
+
+        :param r: 0-255
+
+        :param g: 0-255
+
+        :param b: 0-255
+
+        :param w: 0-255
+
+        :param auto_show: call show automatically
+        """
+        if not self.neopixels_initiated_rgbw:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError('You must call set_pin_mode_neopixel_rgbw first')
+        for color in [r, g, b, w]:
+            if not 0 <= color <= 255:
+                if self.shutdown_on_exception:
+                    await self.shutdown()
+                raise RuntimeError('RGBW values must be in the range of 0-255')
+        command = [PrivateConstants.FILL_NEOPIXELS_RGBW, r, g, b, w, auto_show]
+        await self._send_command(command)
+
+        if auto_show:
+            await self.neopixel_show_rgbw()
+
+    async def neopixel_show_rgbw(self):
+        """
+        Write the NeoPixel buffer stored in the Pico to the NeoPixel strip.
+
+        """
+        if not self.neopixels_initiated_rgbw:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError('You must call set_pin_mode_neopixel_rgbw first')
+        command = [PrivateConstants.SHOW_NEOPIXELS_RGBW]
+        await self._send_command(command)
+
     async def loop_back(self, start_character, callback=None):
         """
         This is a debugging method to send a character to the
@@ -934,6 +1036,44 @@ class TelemetrixRpiPico2WiFiAio:
         self.pico_pins[pin_number] = PrivateConstants.AT_NEO_PIXEL
 
         self.neopixels_initiated = True
+
+    async def set_pin_mode_neopixel_rgbw(self, pin_number=28, num_pixels=8,
+                                    fill_r=0, fill_g=0, fill_b=0, fill_w=0):
+        """
+        Initialize the pico for NeoPixel control. Fill with rgbw values specified.
+
+        Default: Set all the pixels to off.
+
+        :param pin_number: neopixel GPIO control pin
+
+        :param num_pixels: number of pixels in the strip
+
+        :param fill_r: initial red fill value 0-255
+
+        :param fill_g: initial green fill value 0-255
+
+        :param fill_b: initial blue fill value 0-255
+
+        :param fill_w: initial white fill value 0-255
+
+
+        """
+        for color in [fill_r, fill_g, fill_b, fill_w]:
+            if not 0 <= color <= 255:
+                if self.shutdown_on_exception:
+                    await self.shutdown()
+                raise RuntimeError('RGBW values must be in the range of 0-255')
+
+        self.number_of_pixels_rgbw = num_pixels
+
+        command = [PrivateConstants.INIT_NEOPIXELS_rgb, pin_number,
+                   self.number_of_pixels_rgbw, fill_r, fill_g, fill_b, fill_w]
+
+        await self._send_command(command)
+
+        self.pico_pins[pin_number] = PrivateConstants.AT_NEO_PIXEL
+
+        self.neopixels_initiated_rgbw = True
 
     async def set_pin_mode_pwm_output(self, pin_number):
         """

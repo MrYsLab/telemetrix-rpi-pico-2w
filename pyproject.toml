@@ -7,7 +7,7 @@ find = {}  # Scan the project directory with the default parameters
 
 [project]
 name = "telemetrix-rpi-pico-2w"
-version = "1.00"
+version = "1.1.0"
 authors = [
   { name="Alan Yorinks", email="MisterYsLab@gmail.com" },
 ]

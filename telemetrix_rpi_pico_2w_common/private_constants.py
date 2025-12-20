@@ -86,6 +86,11 @@ class PrivateConstants:
     SET_PWM_RANGE = 60
     GET_CPU_TEMPERATURE = 61
     RETRIEVE_PICO_UNIQUE_ID = 62
+    INIT_NEOPIXELS_RGBW = 63
+    SHOW_NEOPIXELS_RGBW = 64
+    SET_NEOPIXEL_RGBW = 65
+    CLEAR_NEOPIXELS_RGBW = 66
+    FILL_NEOPIXELS_RGBW = 67
 
     # reports
     DIGITAL_REPORT = DIGITAL_WRITE
@@ -109,7 +114,7 @@ class PrivateConstants:
 
     DEBUG_PRINT = 99
 
-    TELEMETRIX_VERSION = "1.0.0"
+    TELEMETRIX_VERSION = "1.1.0"
 
     # reporting control
     REPORTING_DISABLE_ALL = 0
