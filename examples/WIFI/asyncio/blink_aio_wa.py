@@ -53,7 +53,7 @@ async def blink(my_board, pin):
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 
-# instantiate TelemetrixRpiPicoWAio
+# instantiate TelemetrixRpiPico2WAio
 board = telemetrix_rpi_pico_2w_wifi_aio.TelemetrixRpiPico2WiFiAio(
     ip_address='192.168.2.212', loop=loop,
 

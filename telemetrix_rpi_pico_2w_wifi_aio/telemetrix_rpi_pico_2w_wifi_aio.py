@@ -32,7 +32,7 @@ from telemetrix_rpi_pico_2w_wifi_aio.telemetrix_pico_2w_wifi_aio_socket import (
 class TelemetrixRpiPico2WiFiAio:
     """
     This class exposes and implements the telemetrix API for the
-    Raspberry Pi Pico W using Python asyncio for concurrency.
+    Raspberry Pi Pico 2W using Python asyncio for concurrency.
 
     It includes the public API methods as well as
     a set of private methods.
@@ -295,7 +295,8 @@ class TelemetrixRpiPico2WiFiAio:
         # generic asyncio task holder
         self.the_task = None
 
-        print(f"TelemetrixRpiPicoWAio:  Version {PrivateConstants.TELEMETRIX_VERSION}\n\n"
+        print(f"TelemetrixRpiPicoW2_WiFIAio:  Version"
+              f" {PrivateConstants.TELEMETRIX_VERSION}\n\n"
               f"Copyright (c) 2022 Alan Yorinks All Rights Reserved.\n")
 
         print('Establishing IP connection...')
@@ -332,7 +333,7 @@ class TelemetrixRpiPico2WiFiAio:
                 print('Valid pico ID Found.')
 
         # get telemetrix firmware version and print it
-        print('\nRetrieving Telemetrix4RpiPicoW firmware ID...')
+        print('\nRetrieving Telemetrix4RpiPico2W firmware ID...')
         await self._get_firmware_version()
 
         if not self.firmware_version:
@@ -342,10 +343,11 @@ class TelemetrixRpiPico2WiFiAio:
                 if self.shutdown_on_exception:
                     await self.shutdown()
                     await asyncio.sleep(.3)
-                raise RuntimeError(f'Telemetrix4RpiPicoW  firmware version')
+                raise RuntimeError(f'Telemetrix4RpiPico2W  firmware version')
 
         else:
-            print(f'Telemetrix4RpiPicoW  firmware version: {self.firmware_version[0]}.'
+            print(f'Telemetrix4RpiPico2W_WiFi_AIO  firmware version:'
+                  f' {self.firmware_version[0]}.'
                   f'{self.firmware_version[1]}.{self.firmware_version[2]}')
         command = [PrivateConstants.ENABLE_ALL_REPORTS]
         await self._send_command(command)
@@ -899,8 +901,7 @@ class TelemetrixRpiPico2WiFiAio:
 
         await self._set_pin_mode(pin_number, PrivateConstants.AT_OUTPUT)
 
-    async def set_pin_mode_neopixel(self, pin_number=28, num_pixels=8,
-                                    fill_r=0, fill_g=0, fill_b=0):
+    async def set_pin_mode_neopixel(self, pin_number=28, num_pixels=8):
         """
         Initialize the pico for NeoPixel control. Fill with rgb values specified.
 
@@ -910,24 +911,12 @@ class TelemetrixRpiPico2WiFiAio:
 
         :param num_pixels: number of pixels in the strip
 
-        :param fill_r: initial red fill value 0-255
-
-        :param fill_g: initial green fill value 0-255
-
-        :param fill_b: initial blue fill value 0-255
-
 
         """
-        for color in [fill_r, fill_g, fill_b]:
-            if not 0 <= color <= 255:
-                if self.shutdown_on_exception:
-                    await self.shutdown()
-                raise RuntimeError('RGB values must be in the range of 0-255')
 
         self.number_of_pixels = num_pixels
 
-        command = [PrivateConstants.INIT_NEOPIXELS, pin_number,
-                   self.number_of_pixels, fill_r, fill_g, fill_b]
+        command = [PrivateConstants.INIT_NEOPIXELS, pin_number, self.number_of_pixels]
 
         await self._send_command(command)
 

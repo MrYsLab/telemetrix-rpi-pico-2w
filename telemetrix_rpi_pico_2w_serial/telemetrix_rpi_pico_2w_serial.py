@@ -296,7 +296,8 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         self.neopixels_initiated = False
 
-        print(f"TelemetrixRpiPicoW2:  Version {PrivateConstants.TELEMETRIX_VERSION}\n\n"
+        print(f"TelemetrixRpiPicoW2_Serial:  Version"
+              f" {PrivateConstants.TELEMETRIX_VERSION}\n\n"
               f"Copyright (c) 2020-2025 Alan Yorinks All Rights Reserved.\n")
 
         if not self.com_port:
@@ -977,8 +978,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         self._set_pin_mode(pin_number, PrivateConstants.AT_OUTPUT)
 
-    def set_pin_mode_neopixel(self, pin_number=28, num_pixels=8,
-                              fill_r=0, fill_g=0, fill_b=0):
+    def set_pin_mode_neopixel(self, pin_number=28, num_pixels=8):
         """
         Initialize the pico for NeoPixel control. Fill with rgb values specified.
 
@@ -988,24 +988,11 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         :param num_pixels: number of pixels in the strip
 
-        :param fill_r: initial red fill value 0-255
-
-        :param fill_g: initial green fill value 0-255
-
-        :param fill_b: initial blue fill value 0-255
-
-
         """
-        for color in [fill_r, fill_g, fill_b]:
-            if not 0 <= color <= 255:
-                if self.shutdown_on_exception:
-                    self.shutdown()
-                raise RuntimeError('RGB values must be in the range of 0-255')
 
         self.number_of_pixels = num_pixels
 
-        command = [PrivateConstants.INIT_NEOPIXELS, pin_number,
-                   self.number_of_pixels, fill_r, fill_g, fill_b]
+        command = [PrivateConstants.INIT_NEOPIXELS, pin_number, num_pixels]
 
         self._send_command(command)
 

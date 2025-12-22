@@ -47,7 +47,7 @@ def device_callback(data):
         print('Unknown register')
 
 
-# instantiate an instance of TelemetrixRpiPicoW
+# instantiate an instance of TelemetrixRpiPico2W
 board = telemetrix_rpi_pico_2w_wifi.TelemetrixRpiPico2WiFi(ip_address='192.168.2.212')
 
 # set the pin mode for SPI0.

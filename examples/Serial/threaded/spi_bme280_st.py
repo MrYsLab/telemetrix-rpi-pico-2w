@@ -49,7 +49,7 @@ def device_callback(data):
         print('Unknown register')
 
 
-# instantiate an instance of TelemetrixRpiPicoW
+# instantiate an instance of TelemetrixRpiPico2W
 board = telemetrix_rpi_pico_2w_serial.TelemetrixRpiPico2wSerial()
 
 # set the pin mode for SPI0.

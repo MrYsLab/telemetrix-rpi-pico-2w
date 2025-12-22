@@ -69,7 +69,6 @@ async def neopixel_demo(my_board):
         await asyncio.sleep(.01)
 
 
-
 # get the event loop
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)

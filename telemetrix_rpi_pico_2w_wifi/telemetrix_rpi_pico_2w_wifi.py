@@ -285,7 +285,8 @@ class TelemetrixRpiPico2WiFi(threading.Thread):
 
         self.neopixels_initiated = False
 
-        print(f"TelemetrixRpiPicoW:  Version {PrivateConstants.TELEMETRIX_VERSION}\n\n"
+        print(f"TelemetrixRpiPicoW2_WiFi:  Version"
+              f" {PrivateConstants.TELEMETRIX_VERSION}\n\n"
               f"Copyright (c) 2022 Alan Yorinks All Rights Reserved.\n")
 
         print('Establishing IP connection...')
@@ -326,7 +327,7 @@ class TelemetrixRpiPico2WiFi(threading.Thread):
                 print('Valid pico ID Found.')
 
         # get pico firmware version and print it
-        print('\nRetrieving Telemetrix4picoW firmware ID...')
+        print('\nRetrieving Telemetrix4pico2W firmware ID...')
         self._get_firmware_version()
         time.sleep(.3)
         if not self.firmware_version:
@@ -335,7 +336,7 @@ class TelemetrixRpiPico2WiFi(threading.Thread):
             raise RuntimeError(f'Telemetrix4picoW firmware version')
 
         else:
-            print(f'Telemetrix4picoW firmware version: {self.firmware_version[0]}.'
+            print(f'Telemetrix4pico2W firmware version: {self.firmware_version[0]}.'
                   f'{self.firmware_version[1]}.{self.firmware_version[2]}')
         command = [PrivateConstants.ENABLE_ALL_REPORTS]
         self._send_command(command)
@@ -890,8 +891,7 @@ class TelemetrixRpiPico2WiFi(threading.Thread):
 
         self._set_pin_mode(pin_number, PrivateConstants.AT_OUTPUT)
 
-    def set_pin_mode_neopixel(self, pin_number=28, num_pixels=8,
-                              fill_r=0, fill_g=0, fill_b=0):
+    def set_pin_mode_neopixel(self, pin_number=28, num_pixels=8):
         """
         Initialize the pico for NeoPixel control. Fill with rgb values specified.
 
@@ -901,24 +901,11 @@ class TelemetrixRpiPico2WiFi(threading.Thread):
 
         :param num_pixels: number of pixels in the strip
 
-        :param fill_r: initial red fill value 0-255
-
-        :param fill_g: initial green fill value 0-255
-
-        :param fill_b: initial blue fill value 0-255
-
 
         """
-        for color in [fill_r, fill_g, fill_b]:
-            if not 0 <= color <= 255:
-                if self.shutdown_on_exception:
-                    self.shutdown()
-                raise RuntimeError('RGB values must be in the range of 0-255')
-
         self.number_of_pixels = num_pixels
 
-        command = [PrivateConstants.INIT_NEOPIXELS, pin_number,
-                   self.number_of_pixels, fill_r, fill_g, fill_b]
+        command = [PrivateConstants.INIT_NEOPIXELS, pin_number, self.number_of_pixels]
 
         self._send_command(command)
 
