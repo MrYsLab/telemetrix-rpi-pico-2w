@@ -73,6 +73,9 @@ class TelemetrixRpiPico2WiFiAio:
 
         :param close_loop_on_shutdown: If true, close the loop during shutdown
 
+        :param pico_instance_id: Pico instance ID (pico board serial number)
+
+
 
         """
 
