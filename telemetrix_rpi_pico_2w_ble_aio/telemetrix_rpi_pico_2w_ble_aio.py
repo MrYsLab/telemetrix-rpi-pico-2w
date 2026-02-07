@@ -1,5 +1,5 @@
 """
- Copyright (c) 2022-2026 Alan Yorinks All rights reserved.
+ Copyright (c) 2022-2026 Alan Yorinks All Rights Reserved.
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -16,14 +16,13 @@
 
 """
 import asyncio
-import socket
 import struct
 import sys
 import time
 import warnings
 
-from telemetrix_rpi_pico_2w_common.private_constants import PrivateConstants
 from telemetrix_rpi_pico_2w_ble_aio.telemetrix_aio_ble import TelemetrixAioBle
+from telemetrix_rpi_pico_2w_common.private_constants import PrivateConstants
 
 
 # noinspection PyMethodMayBeStatic,PyTypeChecker
@@ -52,6 +51,8 @@ class TelemetrixRpiPico2BleAio:
 
         """
         :param ble_device_name: Advertised name of pico 2w BLE device
+                                This name should match the name set on
+                                the Telemetrix4RpiPico2w-BLE server.
 
         :param sleep_tune: A tuning parameter (typically not changed by user)
 
@@ -69,30 +70,6 @@ class TelemetrixRpiPico2BleAio:
         :param close_loop_on_shutdown: If true, close the loop during shutdown
 
         """
-
-        self.ble_device_name = ble_device_name
-
-        self.ble_device = None
-
-        self.shutdown_on_exception = shutdown_on_exception
-
-        self.reset_board_on_shutdown = reset_on_shutdown
-
-        self.close_loop_on_shutdown = close_loop_on_shutdown
-
-        self.autostart = autostart
-
-        self.sleep_tune = sleep_tune
-
-        self.ble_instance = None
-
-        # set the event loop
-        if loop is None:
-            self.loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(self.loop)
-        else:
-            self.loop = loop
-
         # check to make sure that Python interpreter is version 3.10 or greater
         python_version = sys.version_info
         if python_version[0] >= 3:
@@ -103,8 +80,27 @@ class TelemetrixRpiPico2BleAio:
                     raise RuntimeError("ERROR: Python 3.10 or greater is "
                                        "required for use of this program.")
 
+        # save input parameters as instance variables
+        self.ble_device_name = ble_device_name
+        self.sleep_tune = sleep_tune
+        self.autostart = autostart
+        self.loop = loop
+        self.shutdown_on_exception = shutdown_on_exception
+        self.reset_board_on_shutdown = reset_on_shutdown
+        self.close_loop_on_shutdown = close_loop_on_shutdown
+
+        # BLE transport instance
+        self.ble_device = None
+
+        # set the event loop
+        if loop is None:
+            self.loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self.loop)
+        else:
+            self.loop = loop
+
         # The report_dispatch dictionary is used to process
-        # incoming report messages by looking up the report message
+        # incoming report messages by looking up the report message ID
         # and executing its associated processing method.
 
         self.report_dispatch = {}
@@ -173,7 +169,7 @@ class TelemetrixRpiPico2BleAio:
 
         self.digital_callbacks = {}
 
-        self.cpu_temp_active = False
+        # CPU Temperature variables
         self.cpu_temp_callback = None
 
         # there are 2 i2c ports available
@@ -196,11 +192,16 @@ class TelemetrixRpiPico2BleAio:
         self.spi1_chip_select = 13
 
         # the trigger pin will be the key to retrieve
-        # the callback for a specific HC-SR04
+        # the callback for a specific HC-SR04 from the
+        # sonar_callbacks dictionary
         self.sonar_callbacks = {}
 
+        # number of active sonar devices
         self.sonar_count = 0
 
+        # the DHT pin will be the key to retrieve
+        # the callback for a specific DHT device from the
+        # dht_callbacks dictionary
         self.dht_callbacks = {}
 
         self.dht_count = 0
@@ -234,13 +235,11 @@ class TelemetrixRpiPico2BleAio:
                           range(23)}
 
         # skip over unavailable pins
-        for pin in range(25, 29):
-            self.pico_pins[pin] = PrivateConstants.AT_MODE_NOT_SET
+        for pin in range(23, 26):
+            self.pico_pins[pin] = PrivateConstants.AT_PIN_UNAVAILABLE
 
         # on board LED internal pin
         self.pico_pins[64] = PrivateConstants.AT_MODE_NOT_SET
-
-        self.pico_pins[32] = PrivateConstants.AT_MODE_NOT_SET
 
         # create a dictionary that holds all the servo ranges
         self.servo_ranges = {gpio_pin: [1000, 2000] for gpio_pin in
@@ -257,7 +256,7 @@ class TelemetrixRpiPico2BleAio:
         self.valid_stepper_interfaces = [1, 2, 3, 4, 6, 8]
 
         # maximum number of steppers supported
-        self.max_number_of_steppers = 4
+        self.max_number_of_steppers = PrivateConstants.MAX_NUMBER_OF_STEPPERS
 
         # number of steppers created - not to exceed the maximum
         self.number_of_steppers = 0
@@ -286,9 +285,6 @@ class TelemetrixRpiPico2BleAio:
 
         self.neopixels_initiated = False
 
-        # generic asyncio task holder
-        self.the_task = None
-
         print(f"TelemetrixRpiPicoW2_BLE_Aio:  Version"
               f" {PrivateConstants.TELEMETRIX_VERSION}\n\n"
               f"Copyright (c) 2026 Alan Yorinks All Rights Reserved.\n")
@@ -304,8 +300,9 @@ class TelemetrixRpiPico2BleAio:
         class. If you set autostart to False, then your application decides
         when to complete the instantiation.
         """
-        self.ble_device =  TelemetrixAioBle(self.ble_device_name,
-                                                 self._ble_report_dispatcher)
+        # instantiate the BLE transport
+        self.ble_device = TelemetrixAioBle(self.ble_device_name,
+                                           self._ble_report_dispatcher)
         await self.ble_device.connect()
 
         print('Retrieving pico ID...')
@@ -477,12 +474,12 @@ class TelemetrixRpiPico2BleAio:
         command = [PrivateConstants.RETRIEVE_PICO_UNIQUE_ID]
         await self._send_command(command)
         # provide time for the reply
-        await asyncio.sleep(5)
+        await asyncio.sleep(.3)
 
     async def _get_firmware_version(self):
         """
         This method retrieves the
-        pico-telemetrix firmware version
+        telemetrix server firmware version
 
         """
 
@@ -491,7 +488,7 @@ class TelemetrixRpiPico2BleAio:
         await self._send_command(command)
 
         # provide time for the reply
-        await asyncio.sleep(.5)
+        await asyncio.sleep(.3)
 
     async def i2c_read(self, address, register, number_of_bytes,
                        callback=None, i2c_port=0, send_stop=True):
@@ -786,8 +783,6 @@ class TelemetrixRpiPico2BleAio:
                 polling_list = polling_interval.to_bytes(2, byteorder='big')
                 self.cpu_temp_callback = callback
 
-                self.cpu_temp_active = True
-
                 command = [PrivateConstants.GET_CPU_TEMPERATURE, thresh_list[0],
                            thresh_list[1],
                            thresh_list[2], thresh_list[3], polling_list[0],
@@ -895,7 +890,10 @@ class TelemetrixRpiPico2BleAio:
 
 
         """
-
+        if self.pico_pins[pin_number] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError(f'Pin {pin_number} is not available')
         self.number_of_pixels = num_pixels
 
         command = [PrivateConstants.INIT_NEOPIXELS, pin_number, self.number_of_pixels]
@@ -919,7 +917,7 @@ class TelemetrixRpiPico2BleAio:
 
         if pin_number in self.pico_pins:
             self.pico_pins[pin_number] = PrivateConstants.AT_PWM_OUTPUT
-            if self.pwm_active_count >= 15:
+            if self.pwm_active_count >= PrivateConstants.MAX_PWM_PINS_ACTIVE:
                 if self.shutdown_on_exception:
                     await self.shutdown()
                 raise RuntimeError(
@@ -999,7 +997,10 @@ class TelemetrixRpiPico2BleAio:
     DHT_REPORT =  12
 
         """
-
+        if self.pico_pins[pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError(f'Pin {pin} is not available')
         if not callback:
             if self.shutdown_on_exception:
                 await self.shutdown()
@@ -1031,7 +1032,10 @@ class TelemetrixRpiPico2BleAio:
         :param max_pulse: maximum pulse width in microseconds
 
         """
-
+        if self.pico_pins[pin_number] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError(f'Pin {pin_number} is not available')
         if pin_number in self.pico_pins:
             self.pico_pins[pin_number] = PrivateConstants.AT_PWM_OUTPUT
             if self.pwm_active_count >= 15:
@@ -1173,7 +1177,12 @@ class TelemetrixRpiPico2BleAio:
 
         :return: Motor Reference number
         """
-
+        pins = [pin1, pin2, pin3, pin4]
+        if pin in pins:
+            if self.pico_pins[pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+                if self.shutdown_on_exception:
+                    await self.shutdown()
+            raise RuntimeError(f'Pin {pin} is not available')
         if self.number_of_steppers == self.max_number_of_steppers:
             if self.shutdown_on_exception:
                 await self.shutdown()
@@ -1240,7 +1249,10 @@ class TelemetrixRpiPico2BleAio:
        SONAR_DISTANCE =  11
 
         """
-
+        if self.pico_pins[pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError(f'Pin {pin} is not available')
         if not callback:
             if self.shutdown_on_exception:
                 await self.shutdown()
@@ -1372,6 +1384,8 @@ class TelemetrixRpiPico2BleAio:
             I2C = 9
 
             NEO_PIXEL = 10
+
+            AT_PIN_UNAVAILABLE = 254
 
             AT_MODE_NOT_SET = 255
 
@@ -1998,6 +2012,10 @@ class TelemetrixRpiPico2BleAio:
                          called when pin data value changes
 
         """
+        if self.pico_pins[pin_number] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError(f'Pin {pin_number} is not available')
         # Map ADC to GPIO pin numbers
         if pin_state == PrivateConstants.AT_ANALOG:
             self.pico_pins[26 + pin_number] = PrivateConstants.AT_ANALOG
@@ -2072,7 +2090,6 @@ class TelemetrixRpiPico2BleAio:
                 self.pico_pins[27] = PrivateConstants.AT_ANALOG
             elif pin_number == 13:
                 self.pico_pins[28] = PrivateConstants.AT_ANALOG
-
         else:
             self.pico_pins[pin_number] = pin_state
 
@@ -2086,32 +2103,20 @@ class TelemetrixRpiPico2BleAio:
         """
         self.shutdown_flag = True
 
-        try:
-            command = [PrivateConstants.STOP_ALL_REPORTS]
+        command = [PrivateConstants.STOP_ALL_REPORTS]
+        await self._send_command(command)
+        await asyncio.sleep(.1)
+        # try:
+        if self.reset_board_on_shutdown:
+            command = [PrivateConstants.RESET_BOARD, self.reset_board_on_shutdown]
             await self._send_command(command)
-            await asyncio.sleep(.1)
-
-            if self.reset_board_on_shutdown:
-                command = [PrivateConstants.RESET_BOARD, self.reset_board_on_shutdown]
-                await self._send_command(command)
-
+        else:
             await asyncio.sleep(1)
             await self.ble_device.disconnect()
-            # try:
-            #     self.sock.shutdown(socket.SHUT_RDWR)
-            #     self.sock.close()
-            # except Exception:
-            #     pass
 
-            self.the_task.cancel()
             await asyncio.sleep(.5)
-            if self.close_loop_on_shutdown:
-                self.loop.stop()
-
-        except Exception:
-            #  raise RuntimeError('Shutdown failed - could not send stop streaming
-            pass
-    # message')
+        if self.close_loop_on_shutdown:
+            self.loop.stop()
 
     '''
     report message handlers
@@ -2502,4 +2507,4 @@ class TelemetrixRpiPico2BleAio:
         report = data[1]
 
         await self.report_dispatch[report](data[2:])
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.3)
