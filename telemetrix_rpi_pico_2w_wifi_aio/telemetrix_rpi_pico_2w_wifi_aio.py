@@ -1,5 +1,5 @@
 """
- Copyright (c) 2022-2025 Alan Yorinks All rights reserved.
+ Copyright (c) 2022-2026 Alan Yorinks All rights reserved.
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -78,13 +78,19 @@ class TelemetrixRpiPico2WiFiAio:
 
 
         """
-
+        # check to make sure that Python interpreter is version 3.10 or greater
+        python_version = sys.version_info
+        if python_version[0] >= 3:
+            if python_version[1] >= 10:
+                pass
+            else:
+                if self.shutdown_on_exception:
+                    raise RuntimeError("ERROR: Python 3.10 or greater is "
+                                       "required for use of this program.")
+        # save parameters as instance variables
         self.shutdown_on_exception = shutdown_on_exception
-
         self.reset_board_on_shutdown = reset_on_shutdown
-
         self.close_loop_on_shutdown = close_loop_on_shutdown
-
         self.autostart = autostart
         self.ip_address = ip_address
         self.ip_port = ip_port
@@ -101,16 +107,6 @@ class TelemetrixRpiPico2WiFiAio:
         if not ip_address:
             if self.shutdown_on_exception:
                 raise RuntimeError('An IP Address MUST BE SPECIFIED')
-
-        # check to make sure that Python interpreter is version 3.10 or greater
-        python_version = sys.version_info
-        if python_version[0] >= 3:
-            if python_version[1] >= 10:
-                pass
-            else:
-                if self.shutdown_on_exception:
-                    raise RuntimeError("ERROR: Python 3.10 or greater is "
-                                   "required for use of this program.")
 
         # The report_dispatch dictionary is used to process
         # incoming report messages by looking up the report message
@@ -182,7 +178,6 @@ class TelemetrixRpiPico2WiFiAio:
 
         self.digital_callbacks = {}
 
-        self.cpu_temp_active = False
         self.cpu_temp_callback = None
 
         # there are 2 i2c ports available
@@ -205,11 +200,15 @@ class TelemetrixRpiPico2WiFiAio:
         self.spi1_chip_select = 13
 
         # the trigger pin will be the key to retrieve
-        # the callback for a specific HC-SR04
+        # the callback for a specific HC-SR04 from the
+        # sonar_callbacks dictionary
         self.sonar_callbacks = {}
 
         self.sonar_count = 0
 
+        # the DHT pin will be the key to retrieve
+        # the callback for a specific DHT device from the
+        # dht_callbacks dictionary
         self.dht_callbacks = {}
 
         self.dht_count = 0
@@ -223,16 +222,13 @@ class TelemetrixRpiPico2WiFiAio:
         # debug loopback callback method
         self.loop_back_callback = None
 
-        # flag to indicate the start of a new report
-        # self.new_report_start = True
-
         # firmware version to be stored here
         self.firmware_version = []
 
         # reported pico_id
         self.reported_pico_id = []
 
-        # Create a dictionary to store the pins in use.
+        # Create a dictionary to store the GPIO pins in use.
         # Notice that gpio pins 23, 24 and 25 are not included
         # because the Pico does not support these GPIOs.
 
@@ -243,13 +239,18 @@ class TelemetrixRpiPico2WiFiAio:
                           range(23)}
 
         # skip over unavailable pins
-        for pin in range(25, 29):
-            self.pico_pins[pin] = PrivateConstants.AT_MODE_NOT_SET
+        for pin in range(23, 26):
+            self.pico_pins[pin] = PrivateConstants.AT_PIN_UNAVAILABLE
 
         # on board LED internal pin
         self.pico_pins[64] = PrivateConstants.AT_MODE_NOT_SET
+        # creating a list of available sda and scl pins for i2c. If assigned the pins
+        # value will be set to either 0 or 1 depending upon the i2c selected.
+        self.i2c_sda_pins = {n: 255 for n in range(2, 21, 2)}
+        self.i2c_sda_pins[26] = 255
 
-        self.pico_pins[32] = PrivateConstants.AT_MODE_NOT_SET
+        self.i2c_scl_pins = {n: 255 for n in range(3, 22, 2)}
+        self.i2c_scl_pins[27] = 255
 
         # create a dictionary that holds all the servo ranges
         self.servo_ranges = {gpio_pin: [1000, 2000] for gpio_pin in
@@ -266,7 +267,7 @@ class TelemetrixRpiPico2WiFiAio:
         self.valid_stepper_interfaces = [1, 2, 3, 4, 6, 8]
 
         # maximum number of steppers supported
-        self.max_number_of_steppers = 4
+        self.max_number_of_steppers = PrivateConstants.MAX_NUMBER_OF_STEPPERS
 
         # number of steppers created - not to exceed the maximum
         self.number_of_steppers = 0
@@ -300,7 +301,7 @@ class TelemetrixRpiPico2WiFiAio:
 
         print(f"TelemetrixRpiPicoW2_WiFIAio:  Version"
               f" {PrivateConstants.TELEMETRIX_VERSION}\n\n"
-              f"Copyright (c) 2022 Alan Yorinks All Rights Reserved.\n")
+              f"Copyright (c) 2022-2026 Alan Yorinks All Rights Reserved.\n")
 
         print('Establishing IP connection...')
 
@@ -309,7 +310,7 @@ class TelemetrixRpiPico2WiFiAio:
 
     async def start_aio(self):
         """
-        This method completes the instantiation of the TelemetrixPicoWAIO
+        This method completes the instantiation of the TelemetrixPico2wAIO
         class. If you set autostart to False, then your application decides
         when to complete the instantiation.
         """
@@ -504,7 +505,7 @@ class TelemetrixRpiPico2WiFiAio:
     async def _get_firmware_version(self):
         """
         This method retrieves the
-        pico-telemetrix firmware version
+        telemetrix server firmware version
 
         """
         command = [PrivateConstants.GET_FIRMWARE_VERSION]
@@ -807,8 +808,6 @@ class TelemetrixRpiPico2WiFiAio:
                 polling_list = polling_interval.to_bytes(2, byteorder='big')
                 self.cpu_temp_callback = callback
 
-                self.cpu_temp_active = True
-
                 command = [PrivateConstants.GET_CPU_TEMPERATURE, thresh_list[0],
                            thresh_list[1],
                            thresh_list[2], thresh_list[3], polling_list[0],
@@ -916,7 +915,10 @@ class TelemetrixRpiPico2WiFiAio:
 
 
         """
-
+        if self.pico_pins[pin_number] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError(f'Pin {pin_number} is not available')
         self.number_of_pixels = num_pixels
 
         command = [PrivateConstants.INIT_NEOPIXELS, pin_number, self.number_of_pixels]
@@ -940,7 +942,7 @@ class TelemetrixRpiPico2WiFiAio:
 
         if pin_number in self.pico_pins:
             self.pico_pins[pin_number] = PrivateConstants.AT_PWM_OUTPUT
-            if self.pwm_active_count >= 15:
+            if self.pwm_active_count >= PrivateConstants.MAX_PWM_PINS_ACTIVE:
                 if self.shutdown_on_exception:
                     await self.shutdown()
                 raise RuntimeError(
@@ -1020,7 +1022,10 @@ class TelemetrixRpiPico2WiFiAio:
     DHT_REPORT =  12
 
         """
-
+        if self.pico_pins[pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError(f'Pin {pin} is not available')
         if not callback:
             if self.shutdown_on_exception:
                 await self.shutdown()
@@ -1052,7 +1057,10 @@ class TelemetrixRpiPico2WiFiAio:
         :param max_pulse: maximum pulse width in microseconds
 
         """
-
+        if self.pico_pins[pin_number] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError(f'Pin {pin_number} is not available')
         if pin_number in self.pico_pins:
             self.pico_pins[pin_number] = PrivateConstants.AT_PWM_OUTPUT
             if self.pwm_active_count >= 15:
@@ -1194,7 +1202,12 @@ class TelemetrixRpiPico2WiFiAio:
 
         :return: Motor Reference number
         """
-
+        pins = [pin1, pin2, pin3, pin4]
+        if pin in pins:
+            if self.pico_pins[pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+                if self.shutdown_on_exception:
+                    await self.shutdown()
+            raise RuntimeError(f'Pin {pin} is not available')
         if self.number_of_steppers == self.max_number_of_steppers:
             if self.shutdown_on_exception:
                 await self.shutdown()
@@ -1261,7 +1274,10 @@ class TelemetrixRpiPico2WiFiAio:
        SONAR_DISTANCE =  11
 
         """
-
+        if self.pico_pins[pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError(f'Pin {pin} is not available')
         if not callback:
             if self.shutdown_on_exception:
                 await self.shutdown()
@@ -1393,6 +1409,8 @@ class TelemetrixRpiPico2WiFiAio:
             I2C = 9
 
             NEO_PIXEL = 10
+
+            AT_PIN_UNAVAILABLE = 254
 
             AT_MODE_NOT_SET = 255
 
@@ -2019,6 +2037,11 @@ class TelemetrixRpiPico2WiFiAio:
                          called when pin data value changes
 
         """
+        if self.pico_pins[pin_number] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError(f'Pin {pin_number} is not available')
+
         # Map ADC to GPIO pin numbers
         if pin_state == PrivateConstants.AT_ANALOG:
             self.pico_pins[26 + pin_number] = PrivateConstants.AT_ANALOG
