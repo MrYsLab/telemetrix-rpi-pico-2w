@@ -363,7 +363,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         else:
             print(f'Telemetrix4pico2W firmware version: {self.firmware_version[0]}.'
-                  f'{self.firmware_version[1]}')
+                  f'{self.firmware_version[1]}.{self.firmware_version[2]}')
         command = [PrivateConstants.ENABLE_ALL_REPORTS]
         self._send_command(command)
 

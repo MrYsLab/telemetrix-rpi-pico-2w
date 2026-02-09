@@ -340,7 +340,7 @@ class TelemetrixRpiPico2WSerialAIO:
         else:
             print(f'Telemetrix4RPiPico2w_Serial_AIO Version Number:'
                   f' {firmware_version[0]}.'
-                  f'{firmware_version[1]}')
+                  f'{firmware_version[1]}.{firmware_version[2]}')
 
     async def _find_pico(self):
         """
