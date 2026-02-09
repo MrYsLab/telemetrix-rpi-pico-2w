@@ -2527,7 +2527,7 @@ class TelemetrixRpiPico2WiFiAio:
     async def _report_dispatcher(self):
         """
         This is a private method.
-        It continually accepts and interprets data coming from Telemetrix4Arduino,and then
+        It continually accepts and interprets data coming from Telemetrix4Pico2w,and then
         dispatches the correct handler to process the data.
 
         It first receives the length of the packet, and then reads in the rest of the
