@@ -59,6 +59,7 @@ try:
     # start the main function
     loop.run_until_complete(blink(board, DIGITAL_PIN))
     loop.run_until_complete(board.reset_board())
+    sys.exit(0)
 except KeyboardInterrupt:
     loop.run_until_complete(board.shutdown())
     sys.exit(0)

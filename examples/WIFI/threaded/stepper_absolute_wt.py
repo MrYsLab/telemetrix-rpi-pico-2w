@@ -1,5 +1,5 @@
 """
- Copyright (c) 2022-2025 Alan Yorinks All rights reserved.
+ Copyright (c) 2022-2026 Alan Yorinks All rights reserved.
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -33,9 +33,9 @@ GND Power supply ground
 ENA- Not connected
 ENA+ Not connected
 DIR- GND
-DIR+ GPIO Pin 23 
+DIR+ GPIO Pin 0 
 PUL- GND
-PUL+ GPIO Pin 22 
+PUL+ GPIO Pin 0 
 A-, A+ Coil 1 stepper motor
 B-, B+ Coil 2 stepper motor
 

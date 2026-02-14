@@ -1,5 +1,5 @@
 """
- Copyright (c) 2021-2025 Alan Yorinks All rights reserved.
+ Copyright (c) 2021-2026 Alan Yorinks All rights reserved.
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -74,6 +74,24 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         :para vid: Raspberry Pi Pico Vendor ID (Not checked if com port is specified)
         """
 
+        # check to make sure that Python interpreter is version 3.10 or greater
+        python_version = sys.version_info
+        if python_version[0] >= 3:
+            if python_version[1] >= 10:
+                if python_version[2] >= 0:
+                    pass
+            else:
+                raise RuntimeError("ERROR: Python 3.10 or greater is "
+                                   "required for use of this program.")
+
+        # save input parameters as instance variables
+        self.com_port = com_port
+        self.pico_instance_id = pico_instance_id
+        self.sleep_tune = sleep_tune
+        self.shutdown_on_exception = shutdown_on_exception
+        self.reset_on_shutdown = reset_on_shutdown
+        self.pid = pid
+        self.vid = vid
         # initialize threading parent
         threading.Thread.__init__(self)
 
@@ -88,24 +106,6 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         # flag to allow the reporter and receive threads to run.
         self.run_event = threading.Event()
-
-        # check to make sure that Python interpreter is version 3.10 or greater
-        python_version = sys.version_info
-        if python_version[0] >= 3:
-            if python_version[1] >= 10:
-                pass
-            else:
-                raise RuntimeError("ERROR: Python 3.10 or greater is "
-                                   "required for use of this program.")
-
-        # save input parameters as instance variables
-        self.com_port = com_port
-        self.pico_instance_id = pico_instance_id
-        self.sleep_tune = sleep_tune
-        self.shutdown_on_exception = shutdown_on_exception
-        self.reset_on_shutdown = reset_on_shutdown
-        self.pid = pid
-        self.vid = vid
 
         # create a deque to receive and process data from the pico
         self.the_deque = deque()
@@ -165,7 +165,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
             {PrivateConstants.STEPPER_TARGET_POSITION:
                  self._stepper_target_position_report})
 
-        # up to 16 pwm pins may be simultaneously active
+        # up to 16 pwm/servo pins may be simultaneously active
         self.pwm_active_count = 0
 
         # maximum pwm duty cycle - 20000
@@ -176,7 +176,6 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         self.digital_callbacks = {}
 
-        self.cpu_temp_active = False
         self.cpu_temp_callback = None
 
         # there are 2 i2c ports available
@@ -199,11 +198,15 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         self.spi1_chip_select = 13
 
         # the trigger pin will be the key to retrieve
-        # the callback for a specific HC-SR04
+        # the callback for a specific HC-SR04 from the
+        # sonar_callbacks dictionary
         self.sonar_callbacks = {}
 
         self.sonar_count = 0
 
+        # the DHT pin will be the key to retrieve
+        # the callback for a specific DHT device from the
+        # dht_callbacks dictionary
         self.dht_callbacks = {}
 
         self.dht_count = 0
@@ -229,7 +232,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         # maximum pwm duty cycle - 20000
         self.maximum_pwm_duty_cycle = PrivateConstants.MAX_PWM_DUTY_CYCLE
 
-        # Create a dictionary to store the pins in use.
+        # Create a dictionary to store the GPIO pins in use.
         # Notice that gpio pins 23, 24 and 25 are not included
         # because the Pico does not support these GPIOs.
 
@@ -241,8 +244,8 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
                           range(23)}
 
         # skip over unavailable pins
-        for pin in range(25, 29):
-            self.pico_pins[pin] = PrivateConstants.AT_MODE_NOT_SET
+        for pin in range(23, 26):
+            self.pico_pins[pin] = PrivateConstants.AT_PIN_UNAVAILABLE
 
         # on board LED internal pin
         self.pico_pins[64] = PrivateConstants.AT_MODE_NOT_SET
@@ -254,7 +257,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         self.valid_stepper_interfaces = [1, 2, 3, 4, 6, 8]
 
         # maximum number of steppers supported
-        self.max_number_of_steppers = 4
+        self.max_number_of_steppers = PrivateConstants.MAX_NUMBER_OF_STEPPERS
 
         # number of steppers created - not to exceed the maximum
         self.number_of_steppers = 0
@@ -298,7 +301,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         print(f"TelemetrixRpiPicoW2_Serial:  Version"
               f" {PrivateConstants.TELEMETRIX_VERSION}\n\n"
-              f"Copyright (c) 2020-2025 Alan Yorinks All Rights Reserved.\n")
+              f"Copyright (c) 2020-2026 Alan Yorinks All Rights Reserved.\n")
 
         if not self.com_port:
             self._find_pico()
@@ -360,7 +363,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         else:
             print(f'Telemetrix4pico2W firmware version: {self.firmware_version[0]}.'
-                  f'{self.firmware_version[1]}')
+                  f'{self.firmware_version[1]}.{self.firmware_version[2]}')
         command = [PrivateConstants.ENABLE_ALL_REPORTS]
         self._send_command(command)
 
@@ -582,8 +585,6 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
                 polling_list = polling_interval.to_bytes(2, byteorder='big')
                 self.cpu_temp_callback = callback
 
-                self.cpu_temp_active = True
-
                 command = [PrivateConstants.GET_CPU_TEMPERATURE, thresh_list[0],
                            thresh_list[1],
                            thresh_list[2], thresh_list[3], polling_list[0],
@@ -612,7 +613,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
     def _get_firmware_version(self):
         """
         This method retrieves the
-        pico-telemetrix firmware version
+        Telemetrix4RPiPico2w server firmware version
 
         """
         command = [PrivateConstants.GET_FIRMWARE_VERSION]
@@ -989,7 +990,10 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         :param num_pixels: number of pixels in the strip
 
         """
-
+        if self.pico_pins[pin_number] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                self.shutdown()
+            raise RuntimeError(f'Pin {pin_number} is not available')
         self.number_of_pixels = num_pixels
 
         command = [PrivateConstants.INIT_NEOPIXELS, pin_number, num_pixels]
@@ -1015,7 +1019,7 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         if pin_number in self.pico_pins:
             self.pico_pins[pin_number] = PrivateConstants.AT_PWM_OUTPUT
-            if self.pwm_active_count >= 15:
+            if self.pwm_active_count >= PrivateConstants.MAX_PWM_PINS_ACTIVE:
                 if self.shutdown_on_exception:
                     self.shutdown()
                 raise RuntimeError(
@@ -1094,7 +1098,10 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
     DHT_REPORT =  12
 
         """
-
+        if self.pico_pins[pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                self.shutdown()
+            raise RuntimeError(f'Pin {pin} is not available')
         if not callback:
             if self.shutdown_on_exception:
                 self.shutdown()
@@ -1128,7 +1135,10 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
         :param max_pulse: maximum pulse width in microseconds
 
         """
-
+        if self.pico_pins[pin_number] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                self.shutdown()
+            raise RuntimeError(f'Pin {pin_number} is not available')
         if pin_number in self.pico_pins:
             self.pico_pins[pin_number] = PrivateConstants.AT_PWM_OUTPUT
             if self.pwm_active_count >= 15:
@@ -1267,7 +1277,12 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
 
         :return: Motor Reference number
         """
-
+        pins = [pin1, pin2, pin3, pin4]
+        for pin in pins:
+            if self.pico_pins[pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+                if self.shutdown_on_exception:
+                    self.shutdown()
+                raise RuntimeError(f'Pin {pin} is not available')
         if self.number_of_steppers == self.max_number_of_steppers:
             if self.shutdown_on_exception:
                 self.shutdown()
@@ -1334,7 +1349,14 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
        SONAR_DISTANCE =  11
 
         """
-
+        if self.pico_pins[trigger_pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                self.shutdown()
+            raise RuntimeError(f'Pin {trigger_pin}is not available')
+        if self.pico_pins[echo_pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                self.shutdown()
+            raise RuntimeError(f'Pin {echo}is not available')
         if not callback:
             if self.shutdown_on_exception:
                 self.shutdown()
@@ -1464,6 +1486,8 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
             I2C = 9
 
             NEO_PIXEL = 10
+
+            AT_PIN_UNAVAILABLE = 254
 
             AT_MODE_NOT_SET = 255
 
@@ -2088,6 +2112,10 @@ class TelemetrixRpiPico2wSerial(threading.Thread):
                          called when pin data value changes
 
         """
+        if self.pico_pins[pin_number] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                self.shutdown()
+            raise RuntimeError(f'Pin {pin_number} is not available')
         # Map ADC to GPIO pin numbers
         if pin_state == PrivateConstants.AT_ANALOG:
             self.pico_pins[26 + pin_number] = PrivateConstants.AT_ANALOG

@@ -109,7 +109,7 @@ class PrivateConstants:
 
     DEBUG_PRINT = 99
 
-    TELEMETRIX_VERSION = "1.1.0"
+    TELEMETRIX_VERSION = "1.2.0"
 
     # reporting control
     REPORTING_DISABLE_ALL = 0
@@ -134,6 +134,7 @@ class PrivateConstants:
     AT_SPI = 11
     AT_STEPPER = 12
     AT_ONE_WIRE = 13
+    AT_PIN_UNAVAILABLE = 254
     AT_MODE_NOT_SET = 255
 
     # flag to indicate that an i2c command does not specify a register
@@ -141,6 +142,8 @@ class PrivateConstants:
 
     # maximum number of digital pins supported
     NUMBER_OF_DIGITAL_PINS = 100
+
+    MAX_NUMBER_OF_STEPPERS = 4
 
     # maximum raw pwm duty cycle
     MAX_RAW_DUTY_CYCLE = 20000

@@ -44,10 +44,10 @@ for blink in range(5):
     # in this loop, we are likely to get a KeyboardInterrupt
     # exception. Catch the exception and exit gracefully.
     try:
-        print('1')
+        print('ON')
         board.digital_write(DIGITAL_PIN, 1)
         time.sleep(1)
-        print('0')
+        print('OFF')
         board.digital_write(DIGITAL_PIN, 0)
         time.sleep(1)
     except KeyboardInterrupt:
