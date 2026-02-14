@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.6">
 <title>telemetrix_rpi_pico_2w_serial_aio.telemetrix_rpi_pico_2w_serial_aio API documentation</title>
-<meta name="description" content="Copyright (c) 2021-2025 Alan Yorinks All rights reserved …">
+<meta name="description" content="Copyright (c) 2021-2026 Alan Yorinks All rights reserved …">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -36,7 +36,7 @@ el.replaceWith(d);
 <h4 class="title">Module <code>telemetrix_rpi_pico_2w_serial_aio.telemetrix_rpi_pico_2w_serial_aio</code></h4>
 </header>
 <section id="section-intro">
-<p>Copyright (c) 2021-2025 Alan Yorinks All rights reserved.</p>
+<p>Copyright (c) 2021-2026 Alan Yorinks All rights reserved.</p>
 <p>This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
 Version 3 as published by the Free Software Foundation; either
@@ -198,13 +198,15 @@ USA</p>
             {PrivateConstants.STEPPER_TARGET_POSITION:
                  self._stepper_target_position_report})
 
-        # up to 16 pwm pins may be simultaneously active
+        # up to 16 pwm/servo pins may be simultaneously active
         self.pwm_active_count = 0
+
+        # maximum pwm duty cycle - 20000
+        self.maximum_pwm_duty_cycle = PrivateConstants.MAX_PWM_DUTY_CYCLE
 
         # dictionaries to store the callbacks for each pin
         self.analog_callbacks = {}
 
-        self.cpu_temp_active = False
         self.cpu_temp_callback = None
 
         self.digital_callbacks = {}
@@ -227,11 +229,15 @@ USA</p>
         self.spi1_chip_select = 13
 
         # the trigger pin will be the key to retrieve
-        # the callback for a specific HC-SR04
+        # the callback for a specific HC-SR04 from the
+        # sonar_callbacks dictionary
         self.sonar_callbacks = {}
 
         self.sonar_count = 0
 
+        # the DHT pin will be the key to retrieve
+        # the callback for a specific DHT device from the
+        # dht_callbacks dictionary
         self.dht_callbacks = {}
 
         self.dht_count = 0
@@ -248,22 +254,16 @@ USA</p>
         # debug loopback callback method
         self.loop_back_callback = None
 
-        # flag to indicate the start of a new report
-        # self.new_report_start = True
-
         # firmware version to be stored here
         self.firmware_version = []
 
         # reported pico_id
         self.reported_pico_id = []
 
-        # maximum pwm duty cycle - 20000
-        self.maximum_pwm_duty_cycle = PrivateConstants.MAX_PWM_DUTY_CYCLE
-
         # flag to indicate if i2c was previously enabled
         self.i2c_enabled = False
 
-        # Create a dictionary to store the pins in use.
+        # Create a dictionary to store the GPIO pins in use.
         # Notice that gpio pins 23, 24 and 25 are not included
         # because the Pico does not support these GPIOs.
 
@@ -274,9 +274,10 @@ USA</p>
                           range(23)}
 
         # skip over unavailable pins
-        for pin in range(25, 29):
-            self.pico_pins[pin] = PrivateConstants.AT_MODE_NOT_SET
+        for pin in range(23, 26):
+            self.pico_pins[pin] = PrivateConstants.AT_PIN_UNAVAILABLE
 
+        # on board LED internal pin
         self.pico_pins[64] = PrivateConstants.AT_MODE_NOT_SET
 
         # creating a list of available sda and scl pins for i2c. If assigned the pins
@@ -295,33 +296,33 @@ USA</p>
         for gpio_pin in range(25, 29):
             self.servo_ranges[gpio_pin] = [1000, 2000]
 
-            # updated when a new motor is added
-            self.next_stepper_assigned = 0
+        # updated when a new motor is added
+        self.next_stepper_assigned = 0
 
-            # valid list of stepper motor interface types
-            self.valid_stepper_interfaces = [1, 2, 3, 4, 6, 8]
+        # valid list of stepper motor interface types
+        self.valid_stepper_interfaces = [1, 2, 3, 4, 6, 8]
 
-            # maximum number of steppers supported
-            self.max_number_of_steppers = 4
+        # maximum number of steppers supported
+        self.max_number_of_steppers = PrivateConstants.MAX_NUMBER_OF_STEPPERS
 
-            # number of steppers created - not to exceed the maximum
-            self.number_of_steppers = 0
+        # number of steppers created - not to exceed the maximum
+        self.number_of_steppers = 0
 
-            # dictionary to hold stepper motor information
-            self.stepper_info = {&#39;instance&#39;: False, &#39;is_running&#39;: None,
-                                 &#39;maximum_speed&#39;: 1, &#39;speed&#39;: 0, &#39;acceleration&#39;: 0,
-                                 &#39;distance_to_go_callback&#39;: None,
-                                 &#39;target_position_callback&#39;: None,
-                                 &#39;current_position_callback&#39;: None,
-                                 &#39;is_running_callback&#39;: None,
-                                 &#39;motion_complete_callback&#39;: None,
-                                 &#39;acceleration_callback&#39;: None}
+        # dictionary to hold stepper motor information
+        self.stepper_info = {&#39;instance&#39;: False, &#39;is_running&#39;: None,
+                             &#39;maximum_speed&#39;: 1, &#39;speed&#39;: 0, &#39;acceleration&#39;: 0,
+                             &#39;distance_to_go_callback&#39;: None,
+                             &#39;target_position_callback&#39;: None,
+                             &#39;current_position_callback&#39;: None,
+                             &#39;is_running_callback&#39;: None,
+                             &#39;motion_complete_callback&#39;: None,
+                             &#39;acceleration_callback&#39;: None}
 
-            # build a list of stepper motor info items
-            self.stepper_info_list = []
-            # a list of dictionaries to hold stepper information
-            for motor in range(self.max_number_of_steppers):
-                self.stepper_info_list.append(self.stepper_info.copy())
+        # build a list of stepper motor info items
+        self.stepper_info_list = []
+        # a list of dictionaries to hold stepper information
+        for motor in range(self.max_number_of_steppers):
+            self.stepper_info_list.append(self.stepper_info.copy())
 
         # neopixel data
         self.number_of_pixels = None
@@ -330,15 +331,16 @@ USA</p>
 
         print(f&#34;TelemetrixRpiPico2W_SerialAio:  Version&#34;
               f&#34; {PrivateConstants.TELEMETRIX_VERSION}\n\n&#34;
-              f&#34;Copyright (c) 2021 Alan Yorinks All Rights Reserved.\n&#34;)
+              f&#34;Copyright (c) 2021-2026 Alan Yorinks All Rights Reserved.\n&#34;)
 
         if autostart:
             self.loop.run_until_complete(self.start_aio())
 
     async def start_aio(self):
         &#34;&#34;&#34;
-        This method may be called directly, if the autostart
-        parameter in __init__ is set to false.
+        This method completes the instantiation of the TelemetrixRpiPico2Ble
+        class. If you set autostart to False, then your application decides
+        when to complete the instantiation.
 
         This method instantiates the serial interface.
 
@@ -380,7 +382,7 @@ USA</p>
         else:
             print(f&#39;Telemetrix4RPiPico2w_Serial_AIO Version Number:&#39;
                   f&#39; {firmware_version[0]}.&#39;
-                  f&#39;{firmware_version[1]}&#39;)
+                  f&#39;{firmware_version[1]}.{firmware_version[2]}&#39;)
 
     async def _find_pico(self):
         &#34;&#34;&#34;
@@ -451,7 +453,8 @@ USA</p>
 
     async def _get_firmware_version(self):
         &#34;&#34;&#34;
-        This method retrieves the Telemetrix4RPiPico firmware version
+        This method retrieves the Telemetrix4RPiPico2w
+        server firmware version
 
         :returns: Firmata firmware version
         &#34;&#34;&#34;
@@ -498,8 +501,6 @@ USA</p>
                 thresh_list = list(struct.pack(&#34;f&#34;, threshold))
                 polling_list = polling_interval.to_bytes(2, byteorder=&#39;big&#39;)
                 self.cpu_temp_callback = callback
-
-                self.cpu_temp_active = True
 
                 command = [PrivateConstants.GET_CPU_TEMPERATURE, thresh_list[0],
                            thresh_list[1],
@@ -655,6 +656,8 @@ USA</p>
             I2C = 9
 
             NEO_PIXEL = 10
+
+            AT_PIN_UNAVAILABLE = 254
 
             AT_MODE_NOT_SET = 255
 
@@ -1614,7 +1617,10 @@ USA</p>
         :param num_pixels: number of pixels in the strip
 
         &#34;&#34;&#34;
-
+        if self.pico_pins[pin_number] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError(f&#39;Pin {pin_number} is not available&#39;)
         self.number_of_pixels = num_pixels
 
         command = [PrivateConstants.INIT_NEOPIXELS, pin_number, self.number_of_pixels]
@@ -1640,7 +1646,7 @@ USA</p>
 
         if pin_number in self.pico_pins:
             self.pico_pins[pin_number] = PrivateConstants.AT_PWM_OUTPUT
-            if self.pwm_active_count &gt;= 15:
+            if self.pwm_active_count &gt;= PrivateConstants.MAX_PWM_PINS_ACTIVE:
                 if self.shutdown_on_exception:
                     await self.shutdown()
                 raise RuntimeError(
@@ -1731,7 +1737,10 @@ USA</p>
         DHT_REPORT =  12
 
         &#34;&#34;&#34;
-
+        if self.pico_pins[pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError(f&#39;Pin {pin} is not available&#39;)
         if not callback:
             if self.shutdown_on_exception:
                 await self.shutdown()
@@ -1765,7 +1774,10 @@ USA</p>
         :param max_pulse: maximum pulse width in microseconds
 
         &#34;&#34;&#34;
-
+        if self.pico_pins[pin_number] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError(f&#39;Pin {pin_number} is not available&#39;)
         await self._set_pin_mode(pin_number, PrivateConstants.AT_SERVO, min_pulse,
                                  max_pulse)
         self.pico_pins[pin_number] = PrivateConstants.AT_SERVO
@@ -1897,7 +1909,12 @@ USA</p>
 
         :return: Motor Reference number
         &#34;&#34;&#34;
-
+        pins = [pin1, pin2, pin3, pin4]
+        for pin in pins:
+            if self.pico_pins[pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+                if self.shutdown_on_exception:
+                    await self.shutdown()
+                raise RuntimeError(f&#39;Pin {pin} is not available&#39;)
         if self.number_of_steppers == self.max_number_of_steppers:
             if self.shutdown_on_exception:
                 await self.shutdown()
@@ -1942,12 +1959,12 @@ USA</p>
         min_duty = self.servo_ranges[pin_number][PrivateConstants.MIN_SERVO_DUTY_CYCLE]
         max_duty = self.servo_ranges[pin_number][PrivateConstants.MAX_SERVO_DUTY_CYCLE]
 
-        servo_range = max_duty - min_duty
+        mm = min_duty.to_bytes(2, byteorder=&#39;big&#39;)
+        mx = max_duty.to_bytes(2, byteorder=&#39;big&#39;)
 
-        duty_cycle = int(value / 180 * servo_range) + min_duty
-
-        # use a raw pwm write from the calculated values
-        await self.pwm_write(pin_number, duty_cycle, True)
+        command = [PrivateConstants.SERVO_WRITE, pin_number, value, mm[0], mm[1],
+                   mx[0], mx[1]]
+        await self._send_command(command)
 
     async def spi_cs_control(self, chip_select_pin, select):
         &#34;&#34;&#34;
@@ -2091,7 +2108,14 @@ USA</p>
        SONAR_DISTANCE =  11
 
         &#34;&#34;&#34;
-
+        if self.pico_pins[trigger_pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError(f&#39;Pin {trigger_pin} is not available&#39;)
+        if self.pico_pins[echo_pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError(f&#39;Pin {echo_pin} is not available&#39;)
         if not callback:
             if self.shutdown_on_exception:
                 await self.shutdown()
@@ -2133,6 +2157,10 @@ USA</p>
                          called when pin data value changes
 
         &#34;&#34;&#34;
+        if self.pico_pins[pin_number] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError(f&#39;Pin {pin_number} is not available&#39;)
         # Map ADC to GPIO pin numbers
         if pin_state == PrivateConstants.AT_ANALOG:
             self.pico_pins[26 + pin_number] = PrivateConstants.AT_ANALOG
@@ -2858,8 +2886,6 @@ error occurs</p>
             polling_list = polling_interval.to_bytes(2, byteorder=&#39;big&#39;)
             self.cpu_temp_callback = callback
 
-            self.cpu_temp_active = True
-
             command = [PrivateConstants.GET_CPU_TEMPERATURE, thresh_list[0],
                        thresh_list[1],
                        thresh_list[2], thresh_list[3], polling_list[0],
@@ -2927,6 +2953,8 @@ Maximum of 60 seconds (6000 ms.)</p>
 
         NEO_PIXEL = 10
 
+        AT_PIN_UNAVAILABLE = 254
+
         AT_MODE_NOT_SET = 255
 
     :return: pico_pins
@@ -2956,6 +2984,8 @@ DHT = 8
 I2C = 9
 
 NEO_PIXEL = 10
+
+AT_PIN_UNAVAILABLE = 254
 
 AT_MODE_NOT_SET = 255
 </code></pre>
@@ -3404,12 +3434,12 @@ may be modified by calling pwm_range</p></div>
     min_duty = self.servo_ranges[pin_number][PrivateConstants.MIN_SERVO_DUTY_CYCLE]
     max_duty = self.servo_ranges[pin_number][PrivateConstants.MAX_SERVO_DUTY_CYCLE]
 
-    servo_range = max_duty - min_duty
+    mm = min_duty.to_bytes(2, byteorder=&#39;big&#39;)
+    mx = max_duty.to_bytes(2, byteorder=&#39;big&#39;)
 
-    duty_cycle = int(value / 180 * servo_range) + min_duty
-
-    # use a raw pwm write from the calculated values
-    await self.pwm_write(pin_number, duty_cycle, True)</code></pre>
+    command = [PrivateConstants.SERVO_WRITE, pin_number, value, mm[0], mm[1],
+               mx[0], mx[1]]
+    await self._send_command(command)</code></pre>
 </details>
 <div class="desc"><p>Write the value to the specified servo</p>
 <p>:param pin_number: GPIO pin number</p>
@@ -3502,7 +3532,10 @@ report will be generated</p>
     DHT_REPORT =  12
 
     &#34;&#34;&#34;
-
+    if self.pico_pins[pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+        if self.shutdown_on_exception:
+            await self.shutdown()
+        raise RuntimeError(f&#39;Pin {pin} is not available&#39;)
     if not callback:
         if self.shutdown_on_exception:
             await self.shutdown()
@@ -3750,7 +3783,10 @@ API.</li>
     :param num_pixels: number of pixels in the strip
 
     &#34;&#34;&#34;
-
+    if self.pico_pins[pin_number] == PrivateConstants.AT_PIN_UNAVAILABLE:
+        if self.shutdown_on_exception:
+            await self.shutdown()
+        raise RuntimeError(f&#39;Pin {pin_number} is not available&#39;)
     self.number_of_pixels = num_pixels
 
     command = [PrivateConstants.INIT_NEOPIXELS, pin_number, self.number_of_pixels]
@@ -3789,7 +3825,7 @@ API.</li>
 
     if pin_number in self.pico_pins:
         self.pico_pins[pin_number] = PrivateConstants.AT_PWM_OUTPUT
-        if self.pwm_active_count &gt;= 15:
+        if self.pwm_active_count &gt;= PrivateConstants.MAX_PWM_PINS_ACTIVE:
             if self.shutdown_on_exception:
                 await self.shutdown()
             raise RuntimeError(
@@ -3833,7 +3869,10 @@ PWM. Servo pins share the 16 PWM pins.</p>
     :param max_pulse: maximum pulse width in microseconds
 
     &#34;&#34;&#34;
-
+    if self.pico_pins[pin_number] == PrivateConstants.AT_PIN_UNAVAILABLE:
+        if self.shutdown_on_exception:
+            await self.shutdown()
+        raise RuntimeError(f&#39;Pin {pin_number} is not available&#39;)
     await self._set_pin_mode(pin_number, PrivateConstants.AT_SERVO, min_pulse,
                              max_pulse)
     self.pico_pins[pin_number] = PrivateConstants.AT_SERVO</code></pre>
@@ -3868,7 +3907,14 @@ There are 16 PWM pins shared between the Servo and PWM Output modes.</p>
    SONAR_DISTANCE =  11
 
     &#34;&#34;&#34;
-
+    if self.pico_pins[trigger_pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+        if self.shutdown_on_exception:
+            await self.shutdown()
+        raise RuntimeError(f&#39;Pin {trigger_pin} is not available&#39;)
+    if self.pico_pins[echo_pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+        if self.shutdown_on_exception:
+            await self.shutdown()
+        raise RuntimeError(f&#39;Pin {echo_pin} is not available&#39;)
     if not callback:
         if self.shutdown_on_exception:
             await self.shutdown()
@@ -4065,7 +4111,12 @@ spi1 = 14</p>
 
     :return: Motor Reference number
     &#34;&#34;&#34;
-
+    pins = [pin1, pin2, pin3, pin4]
+    for pin in pins:
+        if self.pico_pins[pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError(f&#39;Pin {pin} is not available&#39;)
     if self.number_of_steppers == self.max_number_of_steppers:
         if self.shutdown_on_exception:
             await self.shutdown()
@@ -4352,8 +4403,9 @@ list.</p>
 </summary>
 <pre><code class="python">async def start_aio(self):
     &#34;&#34;&#34;
-    This method may be called directly, if the autostart
-    parameter in __init__ is set to false.
+    This method completes the instantiation of the TelemetrixRpiPico2Ble
+    class. If you set autostart to False, then your application decides
+    when to complete the instantiation.
 
     This method instantiates the serial interface.
 
@@ -4395,10 +4447,11 @@ list.</p>
     else:
         print(f&#39;Telemetrix4RPiPico2w_Serial_AIO Version Number:&#39;
               f&#39; {firmware_version[0]}.&#39;
-              f&#39;{firmware_version[1]}&#39;)</code></pre>
+              f&#39;{firmware_version[1]}.{firmware_version[2]}&#39;)</code></pre>
 </details>
-<div class="desc"><p>This method may be called directly, if the autostart
-parameter in <strong>init</strong> is set to false.</p>
+<div class="desc"><p>This method completes the instantiation of the TelemetrixRpiPico2Ble
+class. If you set autostart to False, then your application decides
+when to complete the instantiation.</p>
 <p>This method instantiates the serial interface.</p>
 <p>Use this method if you wish to start TelemetrixRPiPicoAIO manually from
 an asyncio function.</p></div>

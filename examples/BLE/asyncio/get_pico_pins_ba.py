@@ -46,7 +46,8 @@ asyncio.set_event_loop(loop)
 
 # instantiate pymata_express
 try:
-    board = telemetrix_rpi_pico_2w_ble_aio.TelemetrixRpiPico2BleAio(ble_device_name="Tmx4Pico2W",
+    board = telemetrix_rpi_pico_2w_ble_aio.TelemetrixRpiPico2wBleAio(
+        ble_device_name="Tmx4Pico2W",
                                                                     loop=loop)
 except (KeyboardInterrupt, RuntimeError):
     # loop.run_until_complete(board.reset_board())

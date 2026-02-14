@@ -39,7 +39,7 @@ asyncio.set_event_loop(loop)
 
 # instantiate telemetrix
 try:
-    board = telemetrix_rpi_pico_2w_ble_aio.TelemetrixRpiPico2BleAio(ble_device_name =
+    board = telemetrix_rpi_pico_2w_ble_aio.TelemetrixRpiPico2wBleAio(ble_device_name =
                                                                     "Tmx4Pico2W", loop = loop)
 
 except (KeyboardInterrupt, RuntimeError):
@@ -64,7 +64,6 @@ async def get_cpu_temp():
     """
      This function will request cpu temperature reports
      """
-    # board = telemetrix_rpi_pico_2w_serial.TelemetrixRpiPico2wSerial()
 
     # set the pin mode
     await board.get_cpu_temperature(threshold=.01, polling_interval=3000,

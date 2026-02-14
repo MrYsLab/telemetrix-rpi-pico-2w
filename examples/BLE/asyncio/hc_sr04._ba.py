@@ -79,7 +79,7 @@ loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 
 try:
-    board = telemetrix_rpi_pico_2w_ble_aio.TelemetrixRpiPico2BleAio(
+    board = telemetrix_rpi_pico_2w_ble_aio.TelemetrixRpiPico2wBleAio(
         ble_device_name="Tmx4Pico2W",
         loop=loop)
 except KeyboardInterrupt:

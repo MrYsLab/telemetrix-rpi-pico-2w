@@ -64,7 +64,8 @@ asyncio.set_event_loop(loop)
 
 # instantiate telemetrix
 try:
-    board = telemetrix_rpi_pico_2w_ble_aio.TelemetrixRpiPico2BleAio(ble_device_name="Tmx4Pico2W",
+    board = telemetrix_rpi_pico_2w_ble_aio.TelemetrixRpiPico2wBleAio(
+        ble_device_name="Tmx4Pico2W",
                                                                     loop=loop)
 except (KeyboardInterrupt, RuntimeError):
     sys.exit()

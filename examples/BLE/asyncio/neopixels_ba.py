@@ -72,7 +72,8 @@ async def neopixel_demo(my_board):
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 
-board = telemetrix_rpi_pico_2w_ble_aio.TelemetrixRpiPico2BleAio(ble_device_name="Tmx4Pico2W", loop=loop)
+board = telemetrix_rpi_pico_2w_ble_aio.TelemetrixRpiPico2wBleAio(
+    ble_device_name="Tmx4Pico2W", loop=loop)
 # start the main function
 try:
     loop.run_until_complete(neopixel_demo(board))
