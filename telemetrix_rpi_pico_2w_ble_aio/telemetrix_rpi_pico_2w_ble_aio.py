@@ -1050,6 +1050,10 @@ class TelemetrixRpiPico2BleAio:
                                  max_pulse)
         self.pico_pins[pin_number] = PrivateConstants.AT_SERVO
 
+        await self._set_pin_mode(pin_number, PrivateConstants.AT_SERVO, min_pulse,
+                                 max_pulse)
+        self.pico_pins[pin_number] = PrivateConstants.AT_SERVO
+
     async def set_pin_mode_spi(self, spi_port=0, chip_select=None, speed_maximum=500000,
                                data_order=1, data_mode=0):
 
@@ -1178,11 +1182,11 @@ class TelemetrixRpiPico2BleAio:
         :return: Motor Reference number
         """
         pins = [pin1, pin2, pin3, pin4]
-        if pin in pins:
+        for pin in pins:
             if self.pico_pins[pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
                 if self.shutdown_on_exception:
                     await self.shutdown()
-            raise RuntimeError(f'Pin {pin} is not available')
+                raise RuntimeError(f'Pin {pin} is not available')
         if self.number_of_steppers == self.max_number_of_steppers:
             if self.shutdown_on_exception:
                 await self.shutdown()
@@ -1249,10 +1253,14 @@ class TelemetrixRpiPico2BleAio:
        SONAR_DISTANCE =  11
 
         """
-        if self.pico_pins[pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+        if self.pico_pins[trigger_pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
             if self.shutdown_on_exception:
                 await self.shutdown()
-            raise RuntimeError(f'Pin {pin} is not available')
+            raise RuntimeError(f'Pin {trigger_pin} is not available')
+        if self.pico_pins[echo_pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError(f'Pin {echo_pin} is not available')
         if not callback:
             if self.shutdown_on_exception:
                 await self.shutdown()

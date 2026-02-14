@@ -34,13 +34,13 @@ SERVO_PIN = 0
 async def move_servo(the_board):
     try:
         await the_board.set_pin_mode_servo(SERVO_PIN, 1000, 2000)
-        time.sleep(.2)
+        await asyncio.sleep(.2)
         await the_board.servo_write(SERVO_PIN, 90)
-        time.sleep(1)
+        await asyncio.sleep(1)
         await the_board.servo_write(SERVO_PIN, 0)
-        time.sleep(1)
+        await asyncio.sleep(1)
         await the_board.servo_write(SERVO_PIN, 180)
-        time.sleep(1)
+        await asyncio.sleep(1)
         await the_board.servo_write(SERVO_PIN, 90)
     except KeyboardInterrupt:
         await the_board.shutdown()

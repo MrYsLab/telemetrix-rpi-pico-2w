@@ -1,5 +1,5 @@
 """
- Copyright (c) 2022-2025 Alan Yorinks All rights reserved.
+ Copyright (c) 2022-2026 Alan Yorinks All rights reserved.
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -23,6 +23,21 @@ from telemetrix_rpi_pico_2w_serial_aio import telemetrix_rpi_pico_2w_serial_aio
 
 """
 Run a motor using runSpeedToPosition
+
+Motor used to test is a NEMA-17 size - 200 steps/rev, 12V 350mA.
+And the driver is a TB6600 4A 9-42V Nema 17 Stepper Motor Driver.
+
+The driver was connected as follows:
+VCC 12 VDC
+GND Power supply ground
+ENA- Not connected
+ENA+ Not connected
+DIR-  GND
+DIR+ GPIO Pin 1 
+PUL-  GND
+PUL+ GPIO Pin 0
+A-, A+ Coil 1 stepper motor
+B-, B+ Coil 2 stepper motor
 """
 
 EXIT_FLAG = 0

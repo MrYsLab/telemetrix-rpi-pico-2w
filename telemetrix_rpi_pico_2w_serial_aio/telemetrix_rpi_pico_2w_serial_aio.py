@@ -1868,11 +1868,11 @@ class TelemetrixRpiPico2WSerialAIO:
         :return: Motor Reference number
         """
         pins = [pin1, pin2, pin3, pin4]
-        if pin in pins:
+        for pin in pins:
             if self.pico_pins[pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
                 if self.shutdown_on_exception:
                     await self.shutdown()
-            raise RuntimeError(f'Pin {pin} is not available')
+                raise RuntimeError(f'Pin {pin} is not available')
         if self.number_of_steppers == self.max_number_of_steppers:
             if self.shutdown_on_exception:
                 await self.shutdown()
@@ -1917,12 +1917,12 @@ class TelemetrixRpiPico2WSerialAIO:
         min_duty = self.servo_ranges[pin_number][PrivateConstants.MIN_SERVO_DUTY_CYCLE]
         max_duty = self.servo_ranges[pin_number][PrivateConstants.MAX_SERVO_DUTY_CYCLE]
 
-        servo_range = max_duty - min_duty
+        mm = min_duty.to_bytes(2, byteorder='big')
+        mx = max_duty.to_bytes(2, byteorder='big')
 
-        duty_cycle = int(value / 180 * servo_range) + min_duty
-
-        # use a raw pwm write from the calculated values
-        await self.pwm_write(pin_number, duty_cycle, True)
+        command = [PrivateConstants.SERVO_WRITE, pin_number, value, mm[0], mm[1],
+                   mx[0], mx[1]]
+        await self._send_command(command)
 
     async def spi_cs_control(self, chip_select_pin, select):
         """
@@ -2066,10 +2066,14 @@ class TelemetrixRpiPico2WSerialAIO:
        SONAR_DISTANCE =  11
 
         """
-        if self.pico_pins[pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+        if self.pico_pins[trigger_pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
             if self.shutdown_on_exception:
                 await self.shutdown()
-            raise RuntimeError(f'Pin {pin} is not available')
+            raise RuntimeError(f'Pin {trigger_pin} is not available')
+        if self.pico_pins[echo_pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                await self.shutdown()
+            raise RuntimeError(f'Pin {echo_pin} is not available')
         if not callback:
             if self.shutdown_on_exception:
                 await self.shutdown()

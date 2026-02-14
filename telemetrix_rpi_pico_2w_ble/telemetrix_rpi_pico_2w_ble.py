@@ -1154,11 +1154,11 @@ class TelemetrixRpiPico2Ble:
         :return: Motor Reference number
         """
         pins = [pin1, pin2, pin3, pin4]
-        if pin in pins:
+        for pin in pins:
             if self.pico_pins[pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
                 if self.shutdown_on_exception:
                     self.shutdown()
-            raise RuntimeError(f'Pin {pin} is not available')
+                raise RuntimeError(f'Pin {pin} is not available')
         if self.number_of_steppers == self.max_number_of_steppers:
             if self.shutdown_on_exception:
                 self.shutdown()
@@ -1225,10 +1225,14 @@ class TelemetrixRpiPico2Ble:
        SONAR_DISTANCE =  11
 
         """
-        if self.pico_pins[pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+        if self.pico_pins[trigger_pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
             if self.shutdown_on_exception:
                 self.shutdown()
-            raise RuntimeError(f'Pin {pin} is not available')
+            raise RuntimeError(f'Pin {trigger_pin} is not available')
+        if self.pico_pins[echo_pin] == PrivateConstants.AT_PIN_UNAVAILABLE:
+            if self.shutdown_on_exception:
+                self.shutdown()
+            raise RuntimeError(f'Pin {echo_pin} is not available')
         if not callback:
             if self.shutdown_on_exception:
                 self.shutdown()

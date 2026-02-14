@@ -6,8 +6,8 @@
 This Python package allows you to monitor and control a Raspberry Pi Pico 2W 
 board by 
 simply writing a Python script using one of the telemetrix-rpi-pico-2w APIs.
-APIs are provided for both synchronous and asyncio implementations for both
-WiFi and USB/Serial transports.
+APIs are provided for both synchronous and asyncio implementations for BLE, 
+WiFi, and USB/Serial transports.
 
 Please refer to the [User's Guide](https://mryslab.github.io/telemetrix-rpi-pico-2w/) for 
 further information, including installation 
