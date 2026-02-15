@@ -1,5 +1,5 @@
 
-# Server Configuration
+## Server Configuration
 
 ### Telemetrix4RpiPico2w-Serial
 

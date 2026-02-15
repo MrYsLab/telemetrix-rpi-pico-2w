@@ -1,4 +1,3 @@
-# Install the Telemetrix4RpiPico2w Server Library Into The Arduino IDE
 
 1. Open the Arduino IDE, then click the library icon.
 

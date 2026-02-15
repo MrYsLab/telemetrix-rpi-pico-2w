@@ -1,16 +1,12 @@
-# Select A Server From the Arduino IDE Examples Menu
+## Choose A Server
 
 Select File from the Arduino IDE main menu and then select Examples.
 
 Next, choose _Telemetrix4RpiPico2w_ from the example selections.
 
-![](images/select_server2.png)
+![](images/select_server.png)
 
-There are three servers to choose from:
-
-* _Telemetrix4RpiPico2w-BLE_
-
-    This server implements the BLE Nordic UART Service.
+There are two servers to choose from:
 
 * _Telemetrix4RpiPico2w-Serial_
 

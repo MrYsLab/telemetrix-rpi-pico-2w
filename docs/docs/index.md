@@ -2,14 +2,15 @@
 font-size:3em"><i>Telemetrix User's Guide For The</i></div>
 <div style="text-align:center;color:#990033; font-family:times, serif;
 font-size:3em"><i>Raspberry Pi Pico 2W</i></div>
-"
+
+
 ![](./images/tmx3.png)
+
 <br>
 
-# Introduction
-
-*Telemetry* is a system for collecting data from a remote device and 
-automatically transmitting it back to local receiving equipment for processing.
+*Telemetry* is a system for collecting data on a remote device and then 
+automatically transmitting the collected data back to local receiving equipment for 
+processing. 
 
 Telemetrix is a telemetry system that allows you to remotely 
 interact with the GPIO pins on your Raspberry Pi Pico 2W. 
@@ -27,7 +28,7 @@ The client and server communicate over
 a BLE, WiFi, or a Serial/USB transport. The choice is up to you!
 
 The server is implemented using the 
-[Arduino Pico Core,](https://github.com/earlephilhower/arduino-pico?tab=readme-ov-file){: target="_blank" rel="noopener"}
+[Arduino Pico Core,](https://github.com/earlephilhower/arduino-pico?tab=readme-ov-file)
 providing full access to all Pico processor features. Install either the WiFi or 
 Serial/USB server on the Pico 2W using the Arduino IDE.
 
@@ -42,14 +43,13 @@ threaded and asyncio concurrency models for both WiFi and Serial transports.
 * Each data change event is time-stamped.
 * Online API Reference Documentation is provided for all four API's.:
 
-    * For the [Threaded WiFi Python Client.](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_wifi/index.html){: target="_blank" rel="noopener"}
-    * For the [Asyncio WiFi Python Client.](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_wifi_aio/index.html){: target="_blank" rel="noopener"}
-    * For the [Threaded BLE Python Client](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_ble/index.html){: target="_blank" rel="noopener"}
-    * For the [Asyncio BLE Python Client](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_ble_aio/index.html){: target="_blank" rel="noopener"}
-    * For the [Threaded Serial Python Client.](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_serial/index.html){: target="_blank" rel="noopener"}
-    * For the [Asyncio Serial Python Client.](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_serial_aio/index.html){: target="_blank" rel="noopener"}
-* A complete [set of working examples](https://github.
-  com/MrYsLab/telemetrix-rpi-pico-2w/tree/master/examples){: target="_blank"rel="noopener"} is provided for each of the six client APIs.
+    * For the [Threaded WiFi Python Client.](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_wifi/index.html)
+    * For the [Asyncio WiFi Python Client.](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_wifi_aio/index.html)
+    * For the [Threaded BLE Python Client](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_ble/index.html)
+    * For the [Asyncio BLE Python Client](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_ble_aio/index.html)
+    * For the [Threaded Serial Python Client.](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_serial/index.html)
+    * For the [Asyncio Serial Python Client.](https://htmlpreview.github.io/?https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/master/html/telemetrix_rpi_pico_2w_serial_aio/index.html)
+* A complete [set of working examples](https://github.com/MrYsLab/telemetrix-rpi-pico-2w/tree/master/examples) is provided for each of the four client APIs.
 * Integrated debugging methods are included in the Pico Server source code to aid in adding new features.
 
 # Intuitive And Easy To Use APIs
@@ -88,7 +88,7 @@ The first element in the list is the report type. Knowing the report type, you m
 optionally have a single callback function handle multiple event types using the 
 report type to identify the callback source.
 
-Report types are defined [here](https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/a998a6eb3b3f265ad23d14bbc43319ad773c2ae3/telemetrix_rpi_pico_2w_common/private_constants.py#L90){: target="_blank" rel="noopener"}.
+Report types are defined [here](https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/a998a6eb3b3f265ad23d14bbc43319ad773c2ae3/telemetrix_rpi_pico_2w_common/private_constants.py#L90).
 
 ### 2. Have your application sit in a loop, waiting for notifications.
 

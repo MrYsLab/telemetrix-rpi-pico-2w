@@ -1,5 +1,3 @@
-# Application Creation
-
 ## The Pico W2 PID and VID
 Each Pico device has a product ID (PID) and a vendor ID (VID) burned 
 into the device. When your application starts, these values are used to 
@@ -31,22 +29,17 @@ and vid parameters when instantiating the API class for the first time.
 Examples are provided for each API and are a good source for understanding how 
 applications are implemented using Telemetrix.
 
-* [BLE Threaded](https://github.com/MrYsLab/telemetrix-rpi-pico-2w/tree/master/examples/BLE/threaded){: target="_blank" rel="noopener"}
+* [Serial Threaded](https://github.com/MrYsLab/telemetrix-rpi-pico-2w/tree/master/examples/Serial/threaded)
 
-* [Serial Threaded](https://github.com/MrYsLab/telemetrix-rpi-pico-2w/tree/master/examples/Serial/threaded){: target="_blank" rel="noopener"}
+* [WiFi Threaded](https://github.com/MrYsLab/telemetrix-rpi-pico-2w/tree/master/examples/WIFI/threaded)
 
-* [WiFi Threaded](https://github.com/MrYsLab/telemetrix-rpi-pico-2w/tree/master/examples/WIFI/threaded){: target="_blank" rel="noopener"}
+* [Serial Asyncio](https://github.com/MrYsLab/telemetrix-rpi-pico-2w/tree/master/examples/Serial/asyncio)
 
-* [BLE Asyncio](https://github.com/MrYsLab/telemetrix-rpi-pico-2w/tree/master/examples/BLE/asyncio){: target="_blank" rel="noopener"}
-
-* [Serial Asyncio](https://github.com/MrYsLab/telemetrix-rpi-pico-2w/tree/master/examples/Serial/asyncio){: target="_blank" rel="noopener"}
-
-* [WiFi Asyncio](https://github.com/MrYsLab/telemetrix-rpi-pico-2w/tree/master/examples/WIFI/asyncio){: target="_blank" rel="noopener"}
+* [WiFi Asyncio](https://github.com/MrYsLab/telemetrix-rpi-pico-2w/tree/master/examples/WIFI/asyncio)
 
 ## Downloading And Running The Examples
 
-Go to the [telemetrix-rpi-pico-2w](https://github.com/MrYsLab/telemetrix-rpi-pico-2w){: target="_blank" rel="noopener"}
-GitHub repository. Click the green button 
+Go to the [telemetrix-rpi-pico-2w](https://github.com/MrYsLab/telemetrix-rpi-pico-2w) GitHub repository. Click the green button 
 in the upper-right corner and download the ZIP file.
 
 ![](./images/examples.png)

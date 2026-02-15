@@ -16,4 +16,4 @@ Executing this command displays the current version of Python 3 installed.
 Python 3.13.7
 ```
 
-If you need to install Python 3, refer to [python.org.](https://www.python.org/){: target="_blank" rel="noopener"}
+If you need to install Python 3, refer to [python.org.](https://www.python.org/)

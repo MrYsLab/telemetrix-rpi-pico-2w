@@ -1,9 +1,7 @@
 
-# General Principles
-
 ### Pin Modes
 
-If you look at the Pico 2W pin-out diagram, you will see that a GPIO pin may be 
+If you look at the Pico pin-out diagram, you will see that a GPIO pin may be 
 configured to operate in one of several operational modes. 
 
 ![](./images/pinout.png)
