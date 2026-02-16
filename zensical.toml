@@ -52,6 +52,8 @@ copyright = "Copyright &copy; 2025-2026 Alan Yorinks &nbsp; &nbsp; &nbsp; &nbsp;
 #   { "Markdown in 5min" = "markdown.md" },
 # ]
 
+
+
 nav = [
     { "Introduction" = "index.md" },
     { "Installation" = [
@@ -79,6 +81,11 @@ nav = [
     { "License" = "license.md" },
 ]
 
+
+[project.theme.icon]
+admonition = {note = "octicons/tag-16"}
+admonition2 = {example = "octicons/beaker-16"}
+admonition3 = {warning = "octicons/alert-16"}
 # With the "extra_css" option you can add your own CSS styling to customize
 # your Zensical project according to your needs. You can add any number of
 # CSS files.

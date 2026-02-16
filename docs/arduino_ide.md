@@ -3,7 +3,8 @@
 
 ##  Download And Install The Arduino IDE
 
-Arduino IDE version 2.1.X is used to upload a WiFi or serial server to the Pico. It is 
+Arduino IDE version 2.1.X is used to upload a BLE, serial, or WiFi server 
+to the Pico. The IDE is 
 also 
 used to modify server source code when configuration is necessary.
 
@@ -14,10 +15,12 @@ operating system. Follow the installation instructions.
 
 ![](images/arduino_ide_download.png)
 
-## A Note For Linux Users
-You may need to add your login to the dialout group to upload to the Arduino.
+!!! note
 
-To do so, follow [these instructions](https://support.arduino.cc/hc/en-us/articles/360016495679-Fix-port-access-on-Linux){: target="_blank" rel="noopener"}.
+    Linux Users!
+    You may need to add your login to the dialout group to upload to the Arduino.
+
+    To do so, follow [these instructions](https://support.arduino.cc/hc/en-us/articles/360016495679-Fix-port-access-on-Linux){: target="_blank" rel="noopener"}.
 
 ## Install the boards manager for the Raspberry Pi Pico 2W
 

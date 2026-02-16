@@ -8,8 +8,10 @@ font-size:3em"><i>Raspberry Pi Pico 2W</i></div>
 
 # Introduction
 
-*Telemetry* is a system for collecting data from a remote device and 
-automatically transmitting it back to local receiving equipment for processing.
+## What is Telemetrix?
+
+*Telemetry* is a system for collecting data from a remote device and automatically 
+transmitting it to a local receiving device for processing.
 
 Telemetrix is a telemetry system that allows you to remotely 
 interact with the GPIO pins on your Raspberry Pi Pico 2W. 
@@ -28,14 +30,16 @@ a BLE, WiFi, or a Serial/USB transport. The choice is up to you!
 
 The server is implemented using the 
 [Arduino Pico Core,](https://github.com/earlephilhower/arduino-pico?tab=readme-ov-file){: target="_blank" rel="noopener"}
-providing full access to all Pico processor features. Install either the WiFi or 
-Serial/USB server on the Pico 2W using the Arduino IDE.
+providing full access to all Pico processor features. Choose the BLE, 
+Serial/USB, or WiFi server you wish to use and install it on the Pico 2W 
+using the Arduino IDE.
 
-Clients are created using one of the Python APIs. API's are provided to support both 
-threaded and asyncio concurrency models for both WiFi and Serial transports.
+Clients are created using one of the Python APIs.
+For each transport type, you may choose to use a threaded 
+synchronous model or a Python asyncio model.
 
 
-# Summary Of Major Features
+## Summary Of Major Features
 
 * Applications are written in conventional Python 3.10 or later.
 * All Data change events are reported asynchronously via user-registered callback functions. 
@@ -52,17 +56,18 @@ threaded and asyncio concurrency models for both WiFi and Serial transports.
   com/MrYsLab/telemetrix-rpi-pico-2w/tree/master/examples){: target="_blank"rel="noopener"} is provided for each of the six client APIs.
 * Integrated debugging methods are included in the Pico Server source code to aid in adding new features.
 
-# Intuitive And Easy To Use APIs
+## Intuitive And Easy To Use APIs
 
 For example, to receive asynchronous digital pin state data change notifications using 
 traditional Python, you do the following:
 
+### Typical API Steps For Input Pins
 
-### 1. Set a pin mode for the pin and register an associated callback function for the pin. 
+#### 1. Set a pin mode for the pin and register an associated callback function for the pin. 
 
 The example below illustrates how this is done.
 
-#### Callbacks
+**Callbacks**
 
 All callbacks are written to accept a single parameter. In the example below, this 
 parameter is named _data_. 
@@ -90,10 +95,16 @@ report type to identify the callback source.
 
 Report types are defined [here](https://github.com/MrYsLab/telemetrix-rpi-pico-2w/blob/a998a6eb3b3f265ad23d14bbc43319ad773c2ae3/telemetrix_rpi_pico_2w_common/private_constants.py#L90){: target="_blank" rel="noopener"}.
 
-### 2. Have your application sit in a loop, waiting for notifications.
+#### 2. Have your application sit in a loop, waiting for notifications.
+
+### Typical API Steps For Output Pins
+
+#### 1. Set a pin mode for the pin. 
+
+#### 2. Set the pin's value.
 
  
-# A Working Example   
+## A Working Example   
 
 Here is a Telemetrix example that monitors several digital input pins:
 

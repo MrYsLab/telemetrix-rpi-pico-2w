@@ -133,10 +133,13 @@ It prints out a notification of the change to the console. Your callback functio
 may store the latest value or issue a command, such as to control an LED 
 or another device.
 
-**NOTE:** Keep the callback function as short as 
-possible. If you need to perform extended processing, 
-create a separate thread or task so your application can continue
-without blocking.
+!!! note
+
+    Keep the callback function as short as possible. 
+    If you need to perform extended processing, create a separate 
+    thread or task so your application can continuewithout blocking.
+
+
 
 ```python
 
