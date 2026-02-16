@@ -30,7 +30,7 @@ SERVO_PIN = 0
 
 # Create a Telemetrix instance.
 
-board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble()
+board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle()
 
 try:
     board.set_pin_mode_servo(SERVO_PIN, 1000, 2000)

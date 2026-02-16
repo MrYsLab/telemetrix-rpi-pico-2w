@@ -31,7 +31,7 @@ in celsius in the callback.
 CB_REPORT_TYPE = 0
 CB_TEMP = 1
 CB_TIME = 2
-board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble()
+board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle()
 
 
 def the_callback(data):

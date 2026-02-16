@@ -24,7 +24,7 @@ def dummy_callback(data):
 
 
 # Create a Telemetrix instance.
-board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble()
+board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle()
 
 print('Setting and retrieving pin modes. Please wait...')
 

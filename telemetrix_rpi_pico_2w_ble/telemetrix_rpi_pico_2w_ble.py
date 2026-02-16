@@ -27,7 +27,7 @@ from telemetrix_rpi_pico_2w_common.private_constants import PrivateConstants
 # noinspection PyMethodMayBeStatic,PyTypeChecker
 
 
-class TelemetrixRpiPico2Ble:
+class TelemetrixRpiPico2wBle:
     """
     This class exposes and implements the telemetrix API for the
     Raspberry Pi Pico 2W using Python threading for concurrency. It

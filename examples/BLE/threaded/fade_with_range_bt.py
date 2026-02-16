@@ -29,7 +29,7 @@ Setup a pin for output and fade its intensity
 DIGITAL_PIN = 6
 
 # Create a Telemetrix instance.
-board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble()
+board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle()
 board.pwm_range(255)
 
 # Set the DIGITAL_PIN as an output pin

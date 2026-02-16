@@ -101,7 +101,7 @@ def step_relative(the_board):
 
 
 # instantiate telemetrix
-board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble()
+board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle()
 
 
 try:

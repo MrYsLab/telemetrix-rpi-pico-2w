@@ -20,7 +20,7 @@ import time
 from telemetrix_rpi_pico_2w_ble import telemetrix_rpi_pico_2w_ble
 
 # Create a Telemetrix instance.
-board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble()
+board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle()
 
 """
 Setup a pin for output and fade its intensity

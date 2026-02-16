@@ -49,7 +49,7 @@ def device_callback(data):
 
 
 # instantiate an instance of TelemetrixRpiPico2W
-board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble()
+board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle()
 
 # set the pin mode for SPI0.
 board.set_pin_mode_spi(chip_select=6)

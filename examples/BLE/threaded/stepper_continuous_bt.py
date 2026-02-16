@@ -41,7 +41,7 @@ B-, B+ Coil 2 stepper motor
 """
 
 # Create a Telemetrix instance.
-board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble()
+board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle()
 
 
 # for continuous motion, the callback is not used, but provided to meet the

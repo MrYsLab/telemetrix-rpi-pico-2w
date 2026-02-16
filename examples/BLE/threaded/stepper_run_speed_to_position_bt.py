@@ -42,7 +42,7 @@ B-, B+ Coil 2 stepper motor
 
 EXIT_FLAG = 0
 # Create a Telemetrix instance.
-board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble()
+board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle()
 
 
 def the_callback(data):

@@ -75,7 +75,7 @@ def adxl345(my_board):
             sys.exit(0)
 
 
-board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble()
+board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle()
 try:
     adxl345(board)
 except KeyboardInterrupt:

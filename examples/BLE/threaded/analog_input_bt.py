@@ -80,7 +80,7 @@ def analog_in(my_board, adc):
         sys.exit(0)
 
 
-board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble()
+board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle()
 
 try:
     analog_in(board, ADC)

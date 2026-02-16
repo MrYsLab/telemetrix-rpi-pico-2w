@@ -53,7 +53,7 @@ def the_callback(data):
 
 
 # instantiate telemetrix
-board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble()
+board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle()
 
 # set the pin mode
 board.set_pin_mode_digital_input_pullup(DIGITAL_INPUT_PIN, the_callback)

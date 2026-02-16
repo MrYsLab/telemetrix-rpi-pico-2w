@@ -62,7 +62,7 @@ def the_callback(data):
 
 
 # instantiate a pico
-board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble()
+board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle()
 
 # set a pin to DHT mode
 board.set_pin_mode_dht(DHT_PIN, the_callback)

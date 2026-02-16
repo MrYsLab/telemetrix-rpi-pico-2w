@@ -64,7 +64,7 @@ def neopixel_demo(my_board):
         time.sleep(.01)
 
 
-board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble()
+board = telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle()
 
 try:
     neopixel_demo(board)
