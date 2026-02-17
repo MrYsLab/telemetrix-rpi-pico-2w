@@ -81,6 +81,7 @@ nav = [
     { "License" = "license.md" },
 ]
 
+# [project.markdown_extensions.attr_list]
 
 [project.theme.icon]
 admonition = {note = "octicons/tag-16"}

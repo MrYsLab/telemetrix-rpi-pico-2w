@@ -58,6 +58,28 @@ Select any of the examples that you wish to run.
 Below are application templates to help you get started.
 The templates show how to instantiate each API. For asyncio, the templates
 
+### BLE Threaded
+
+Import the API and instantiate its class.
+
+```angular2html
+import sys
+import time
+
+# IMPORT THE API
+from telemetrix_rpi_pico_2w_serial import telemetrix_rpi_pico_2w_ble
+"""
+
+# INSTANTIATE THE API CLASS
+board = telemetrix_rpi_pico_2w_serial.TelemetrixRpiPico2wBle()
+
+try:
+    # WRITE YOUR APPLICATION HERE
+except:
+    board.shutdown()
+
+```
+
 ### Serial Threaded
 
 Import the API and instantiate its class.
@@ -103,6 +125,49 @@ except:
 
 ```
 
+### BLE Asyncio
+
+For asyncio, in addition to importing the API, we implement the application
+in an asyncio function.
+
+After obtaining an asyncio loop, we instantiate the API, passing in the loop.
+
+We run the application by calling loop.run_until_complete(my_app(board)) 
+and then gracefully shut it down.
+
+```angular2html
+
+import sys
+import asyncio
+
+# IMPORT THE API
+from telemetrix_rpi_pico_2w_serial_aio import telemetrix_rpi_pico_2w_ble_aio
+
+# An async method for running your application.
+# We pass in the instance of the API created below .
+async def my_app(the_board):
+    # Your Application code
+
+# get the event loop
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+
+try:
+    board = telemetrix_rpi_pico_2w_serial_aio.TelemetrixRpiPico2WBleAIO(loop=loop)
+except KeyboardInterrupt:
+    sys.exit()
+
+try:
+    # start the main function
+    loop.run_until_complete(my_app(board))
+except KeyboardInterrupt:
+    try:
+        loop.run_until_complete(board.shutdown())
+    except:
+        pass
+    sys.exit(0)
+
+```
 
 ### Serial Asyncio
 

@@ -16,7 +16,7 @@ exception is thrown.
 ### Valid GPIO Pin Numbers
 
 GPIO Pins 0 through 22, and 26 through 28 are valid pins to use.
-The board LED is GPIO pin 64.
+The board LED is on GPIO pin 64.
 
 ### ADC Pins
 ADC pins are specified by their corresponding ADC number, 

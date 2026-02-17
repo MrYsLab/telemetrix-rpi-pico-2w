@@ -8,9 +8,9 @@
 1. In the search box, type telemetrix. Then scroll down until you locate the 
 Telemetrix4RPiPico2W library, and then click INSTALL.
 
-    ![](images/telemetrix4_rpi_pico2w.png)
+    ![](images/telemetrix4_rpi_pico2w.png){ width="1000" }
 
 1. You will be prompted to install all of the dependencies. Select INSTALL ALL.
 
-    ![](images/telemetrix4_rpi_pico2w-2.png)
+    ![](images/telemetrix4_rpi_pico2w-2.png){ width="1000" }
 
