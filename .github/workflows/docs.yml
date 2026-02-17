@@ -2,7 +2,7 @@ name: Documentation
 on:
   push:
     branches:
-      - new_mkdocs
+      - gh-pages
 permissions:
   contents: read
   pages: write
