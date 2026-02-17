@@ -61,8 +61,8 @@ USA</p>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble"><code class="flex name class">
-<span>class <span class="ident">TelemetrixRpiPico2Ble</span></span>
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle"><code class="flex name class">
+<span>class <span class="ident">TelemetrixRpiPico2wBle</span></span>
 <span>(</span><span>ble_device_name='Tmx4Pico2W',<br>sleep_tune=1e-06,<br>autostart=True,<br>shutdown_on_exception=True,<br>reset_on_shutdown=True)</span>
 </code></dt>
 <dd>
@@ -70,7 +70,7 @@ USA</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class TelemetrixRpiPico2Ble:
+<pre><code class="python">class TelemetrixRpiPico2wBle:
     &#34;&#34;&#34;
     This class exposes and implements the telemetrix API for the
     Raspberry Pi Pico 2W using Python threading for concurrency. It
@@ -2547,7 +2547,7 @@ receiving a KeyboardInterrupt exception</p>
 <p>:param reset_on_shutdown: Reset the board upon shutdown</p></div>
 <h3>Methods</h3>
 <dl>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.digital_write"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.digital_write"><code class="name flex">
 <span>def <span class="ident">digital_write</span></span>(<span>self, pin, value)</span>
 </code></dt>
 <dd>
@@ -2576,7 +2576,7 @@ receiving a KeyboardInterrupt exception</p>
 <p>:param pin: pico GPIO pin number</p>
 <p>:param value: pin value (1 or 0)</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.disable_all_reporting"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.disable_all_reporting"><code class="name flex">
 <span>def <span class="ident">disable_all_reporting</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -2594,7 +2594,7 @@ receiving a KeyboardInterrupt exception</p>
 </details>
 <div class="desc"><p>Disable reporting for all digital and analog input pins</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.disable_analog_reporting"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.disable_analog_reporting"><code class="name flex">
 <span>def <span class="ident">disable_analog_reporting</span></span>(<span>self, pin)</span>
 </code></dt>
 <dd>
@@ -2616,7 +2616,7 @@ receiving a KeyboardInterrupt exception</p>
 <div class="desc"><p>Disables analog reporting for a single analog pin.</p>
 <p>:param pin: Analog pin number. For example for ADC0, the number is 0.</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.disable_digital_reporting"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.disable_digital_reporting"><code class="name flex">
 <span>def <span class="ident">disable_digital_reporting</span></span>(<span>self, pin)</span>
 </code></dt>
 <dd>
@@ -2638,7 +2638,7 @@ receiving a KeyboardInterrupt exception</p>
 <div class="desc"><p>Disables digital reporting for a single digital input.</p>
 <p>:param pin: GPIO Pin number.</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.enable_analog_reporting"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.enable_analog_reporting"><code class="name flex">
 <span>def <span class="ident">enable_analog_reporting</span></span>(<span>self, pin)</span>
 </code></dt>
 <dd>
@@ -2661,7 +2661,7 @@ receiving a KeyboardInterrupt exception</p>
 <div class="desc"><p>Enables analog reporting for the specified pin.</p>
 <p>:param pin: Analog pin number. For example for ADC0, the number is 0.</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.enable_digital_reporting"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.enable_digital_reporting"><code class="name flex">
 <span>def <span class="ident">enable_digital_reporting</span></span>(<span>self, pin)</span>
 </code></dt>
 <dd>
@@ -2683,7 +2683,7 @@ receiving a KeyboardInterrupt exception</p>
 <div class="desc"><p>Enable reporting on the specified digital pin.</p>
 <p>:param pin: GPIO Pin number.</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.get_cpu_temperature"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.get_cpu_temperature"><code class="name flex">
 <span>def <span class="ident">get_cpu_temperature</span></span>(<span>self, threshold=1.0, polling_interval=1000, callback=None)</span>
 </code></dt>
 <dd>
@@ -2758,7 +2758,7 @@ Maximum of 60 seconds (6000 ms.)</p>
 [CPU_TEMPERATURE_REPORT, degrees_celsius, raw_time_stamp]</p>
 <p>CPU_TEMPERATURE_REPORT = 20</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.get_pico_pins"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.get_pico_pins"><code class="name flex">
 <span>def <span class="ident">get_pico_pins</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -2832,7 +2832,7 @@ AT_MODE_NOT_SET = 255
 </code></pre>
 <p>:return: pico_pins</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.i2c_read"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.i2c_read"><code class="name flex">
 <span>def <span class="ident">i2c_read</span></span>(<span>self, address, register, number_of_bytes, callback=None, i2c_port=0, send_stop=True)</span>
 </code></dt>
 <dd>
@@ -2921,7 +2921,7 @@ begin with a Restart rather than a Start.</p>
 data bytes, time-stamp]</p>
 <p>I2C_READ_REPORT = 10</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.i2c_write"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.i2c_write"><code class="name flex">
 <span>def <span class="ident">i2c_write</span></span>(<span>self, address, args, i2c_port=0)</span>
 </code></dt>
 <dd>
@@ -2975,7 +2975,7 @@ passed in as a list.
 NOTE: THIS MUST BE IN THE FORM OF A LIST.</p>
 <p>:param i2c_port: 0= port 0, 1 = port 1</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.loop_back"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.loop_back"><code class="name flex">
 <span>def <span class="ident">loop_back</span></span>(<span>self, start_character, callback=None)</span>
 </code></dt>
 <dd>
@@ -3008,7 +3008,7 @@ pico device, and have the device loop it back.</p>
 an integer.</p>
 <p>:param callback: Looped back character will appear in the callback method</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.neo_pixel_set_value"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.neo_pixel_set_value"><code class="name flex">
 <span>def <span class="ident">neo_pixel_set_value</span></span>(<span>self, pixel_number, r=0, g=0, b=0, auto_show=False)</span>
 </code></dt>
 <dd>
@@ -3062,7 +3062,7 @@ the value provided.</p>
 <p>:param b: blue value 0-255</p>
 <p>:param auto_show: call show automatically</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.neopixel_clear"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.neopixel_clear"><code class="name flex">
 <span>def <span class="ident">neopixel_clear</span></span>(<span>self, auto_show=True)</span>
 </code></dt>
 <dd>
@@ -3089,7 +3089,7 @@ the value provided.</p>
 <div class="desc"><p>Clear all pixels</p>
 <p>:param auto_show: call show automatically</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.neopixel_fill"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.neopixel_fill"><code class="name flex">
 <span>def <span class="ident">neopixel_fill</span></span>(<span>self, r=0, g=0, b=0, auto_show=True)</span>
 </code></dt>
 <dd>
@@ -3130,7 +3130,7 @@ the value provided.</p>
 <p>:param b: 0-255</p>
 <p>:param auto_show: call show automatically</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.neopixel_show"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.neopixel_show"><code class="name flex">
 <span>def <span class="ident">neopixel_show</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -3152,7 +3152,7 @@ the value provided.</p>
 </details>
 <div class="desc"><p>Write the NeoPixel buffer stored in the Pico to the NeoPixel strip.</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.pwm_frequency"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.pwm_frequency"><code class="name flex">
 <span>def <span class="ident">pwm_frequency</span></span>(<span>self, frequency)</span>
 </code></dt>
 <dd>
@@ -3179,7 +3179,7 @@ the value provided.</p>
 <div class="desc"><p>Modify the pwm frequency. Valid values are in the range of 100Hz to 1MHz</p>
 <p>:param frequency: desired PWM write frequency</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.pwm_range"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.pwm_range"><code class="name flex">
 <span>def <span class="ident">pwm_range</span></span>(<span>self, range_pwm)</span>
 </code></dt>
 <dd>
@@ -3211,7 +3211,7 @@ the value provided.</p>
 The range of values is 16 to 65535</p>
 <p>:param range_pwm: range value</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.pwm_write"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.pwm_write"><code class="name flex">
 <span>def <span class="ident">pwm_write</span></span>(<span>self, pin, duty_cycle=0)</span>
 </code></dt>
 <dd>
@@ -3256,7 +3256,7 @@ This is a PWM write.</p>
 the PWM range. Default is 20000, but it
 may be modified by calling pwm_range</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.servo_write"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.servo_write"><code class="name flex">
 <span>def <span class="ident">servo_write</span></span>(<span>self, pin_number, value)</span>
 </code></dt>
 <dd>
@@ -3295,7 +3295,7 @@ may be modified by calling pwm_range</p></div>
 <p>:param pin_number: GPIO pin number</p>
 <p>:param value: value between 0 and 180</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_analog_input"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_analog_input"><code class="name flex">
 <span>def <span class="ident">set_pin_mode_analog_input</span></span>(<span>self, adc_number, differential=0, callback=None)</span>
 </code></dt>
 <dd>
@@ -3363,7 +3363,7 @@ report will be generated</p>
 <p>The ANALOG_REPORT
 = 3</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_dht"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_dht"><code class="name flex">
 <span>def <span class="ident">set_pin_mode_dht</span></span>(<span>self, pin, callback=None)</span>
 </code></dt>
 <dd>
@@ -3414,7 +3414,7 @@ Temperature (c),Time]</p>
 <p>DHT_REPORT =
 12</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_digital_input"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_digital_input"><code class="name flex">
 <span>def <span class="ident">set_pin_mode_digital_input</span></span>(<span>self, pin_number, callback=None)</span>
 </code></dt>
 <dd>
@@ -3452,7 +3452,7 @@ Temperature (c),Time]</p>
 <p>[DIGITAL_REPORT, pin_number, pin_value, raw_time_stamp]</p>
 <p>DIGITAL_REPORT = 2</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_digital_input_pull_down"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_digital_input_pull_down"><code class="name flex">
 <span>def <span class="ident">set_pin_mode_digital_input_pull_down</span></span>(<span>self, pin_number, callback=None)</span>
 </code></dt>
 <dd>
@@ -3491,7 +3491,7 @@ Temperature (c),Time]</p>
 <p>[DIGITAL_REPORT, pin_number, pin_value, raw_time_stamp]</p>
 <p>DIGITAL_REPORT= 2</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_digital_input_pullup"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_digital_input_pullup"><code class="name flex">
 <span>def <span class="ident">set_pin_mode_digital_input_pullup</span></span>(<span>self, pin_number, callback=None)</span>
 </code></dt>
 <dd>
@@ -3530,7 +3530,7 @@ Temperature (c),Time]</p>
 <p>[DIGITAL_REPORT, pin_number, pin_value, raw_time_stamp]</p>
 <p>The DIGITAL_REPORT = 2</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_digital_output"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_digital_output"><code class="name flex">
 <span>def <span class="ident">set_pin_mode_digital_output</span></span>(<span>self, pin_number)</span>
 </code></dt>
 <dd>
@@ -3550,7 +3550,7 @@ Temperature (c),Time]</p>
 <div class="desc"><p>Set a pin as a digital output pin.</p>
 <p>:param pin_number: pico GPIO pin number</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_i2c"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_i2c"><code class="name flex">
 <span>def <span class="ident">set_pin_mode_i2c</span></span>(<span>self, i2c_port=0, sda_gpio=None, scl_gpio=None)</span>
 </code></dt>
 <dd>
@@ -3626,7 +3626,7 @@ API.</li>
 </ol>
 <p>See i2c_read, and i2c_write</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_neopixel"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_neopixel"><code class="name flex">
 <span>def <span class="ident">set_pin_mode_neopixel</span></span>(<span>self, pin_number=28, num_pixels=8)</span>
 </code></dt>
 <dd>
@@ -3665,7 +3665,7 @@ API.</li>
 <p>:param pin_number: neopixel GPIO control pin</p>
 <p>:param num_pixels: number of pixels in the strip</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_pwm_output"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_pwm_output"><code class="name flex">
 <span>def <span class="ident">set_pin_mode_pwm_output</span></span>(<span>self, pin_number)</span>
 </code></dt>
 <dd>
@@ -3705,7 +3705,7 @@ API.</li>
 PWM. Servo pins share the 16 PWM pins.</p>
 <p>:param pin_number: pico GPIO pin number</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_servo"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_servo"><code class="name flex">
 <span>def <span class="ident">set_pin_mode_servo</span></span>(<span>self, pin_number, min_pulse=1000, max_pulse=2000)</span>
 </code></dt>
 <dd>
@@ -3751,7 +3751,7 @@ PWM. Servo pins share the 16 PWM pins.</p>
 <p>:param min_pulse: minimum pulse width in microseconds</p>
 <p>:param max_pulse: maximum pulse width in microseconds</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_sonar"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_sonar"><code class="name flex">
 <span>def <span class="ident">set_pin_mode_sonar</span></span>(<span>self, trigger_pin, echo_pin, callback=None)</span>
 </code></dt>
 <dd>
@@ -3809,7 +3809,7 @@ Sensor trigger gpio pin</p>
 <p>SONAR_DISTANCE =
 11</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_spi"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_spi"><code class="name flex">
 <span>def <span class="ident">set_pin_mode_spi</span></span>(<span>self, spi_port=0, chip_select=None, speed_maximum=500000, data_order=1, data_mode=0)</span>
 </code></dt>
 <dd>
@@ -3929,7 +3929,7 @@ spi0 = 18
 spi1 = 14</p>
 <p>command message: [command, spi, chip_select, speed, data_order, data_mode]</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_stepper"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_stepper"><code class="name flex">
 <span>def <span class="ident">set_pin_mode_stepper</span></span>(<span>self, interface=1, pin1=2, pin2=3, pin3=4, pin4=5, enable=True)</span>
 </code></dt>
 <dd>
@@ -4036,7 +4036,7 @@ the AccelStepper library.</p>
 <p>:param enable: If this is true, the output pins are enabled at construction time.</p>
 <p>:return: Motor Reference number</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.shutdown"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.shutdown"><code class="name flex">
 <span>def <span class="ident">shutdown</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -4067,7 +4067,7 @@ the AccelStepper library.</p>
 <div class="desc"><p>This method attempts to perform an orderly shutdown.
 If any exceptions are thrown, they are ignored.</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.spi_read_blocking"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.spi_read_blocking"><code class="name flex">
 <span>def <span class="ident">spi_read_blocking</span></span>(<span>self, register, number_of_bytes, spi_port=0, call_back=None)</span>
 </code></dt>
 <dd>
@@ -4140,7 +4140,7 @@ result of read command</p>
 [SPI_READ_REPORT, spi_port, count of data bytes, data bytes, time-stamp]</p>
 <p>SPI_READ_REPORT = 13</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.spi_write_blocking"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.spi_write_blocking"><code class="name flex">
 <span>def <span class="ident">spi_write_blocking</span></span>(<span>self, bytes_to_write, spi_port=0)</span>
 </code></dt>
 <dd>
@@ -4189,7 +4189,7 @@ and chip select control.</p>
 list.</p>
 <p>:param spi_port: SPI port 0 or 1</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.start_aio"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.start_aio"><code class="name flex">
 <span>def <span class="ident">start_aio</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -4237,7 +4237,7 @@ list.</p>
 class. If you set autostart to False, then your application decides
 when to complete the instantiation.</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_disable_outputs"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_disable_outputs"><code class="name flex">
 <span>def <span class="ident">stepper_disable_outputs</span></span>(<span>self, motor_id)</span>
 </code></dt>
 <dd>
@@ -4279,7 +4279,7 @@ again.</p>
 the pin to be disabled.</p>
 <p>:param motor_id: 0 - 3</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_enable_outputs"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_enable_outputs"><code class="name flex">
 <span>def <span class="ident">stepper_enable_outputs</span></span>(<span>self, motor_id)</span>
 </code></dt>
 <dd>
@@ -4311,7 +4311,7 @@ mode.</p>
 the pin to be enabled.</p>
 <p>:param motor_id: 0 - 3</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_get_current_position"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_get_current_position"><code class="name flex">
 <span>def <span class="ident">stepper_get_current_position</span></span>(<span>self, motor_id, current_position_callback)</span>
 </code></dt>
 <dd>
@@ -4357,7 +4357,7 @@ the pin to be enabled.</p>
 <p>[REPORT_TYPE=17, motor_id, current position in steps, time_stamp]</p>
 <p>Positive is clockwise from the 0 position.</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_get_distance_to_go"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_get_distance_to_go"><code class="name flex">
 <span>def <span class="ident">stepper_get_distance_to_go</span></span>(<span>self, motor_id, distance_to_go_callback)</span>
 </code></dt>
 <dd>
@@ -4404,7 +4404,7 @@ from the server.</p>
 <p>[REPORT_TYPE=15, motor_id, distance in steps, time_stamp]</p>
 <p>A positive distance is clockwise from the current position.</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_get_max_speed"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_get_max_speed"><code class="name flex">
 <span>def <span class="ident">stepper_get_max_speed</span></span>(<span>self, motor_id)</span>
 </code></dt>
 <dd>
@@ -4436,7 +4436,7 @@ that was previously set by stepper_set_max_speed()</p>
 <p>:param motor_id: 0 - 3</p>
 <p>:return: The currently configured maximum speed.</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_get_speed"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_get_speed"><code class="name flex">
 <span>def <span class="ident">stepper_get_speed</span></span>(<span>self, motor_id)</span>
 </code></dt>
 <dd>
@@ -4468,7 +4468,7 @@ that was previously set by stepper_set_speed();</p>
 <p>:param motor_id:
 0 - 3</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_get_target_position"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_get_target_position"><code class="name flex">
 <span>def <span class="ident">stepper_get_target_position</span></span>(<span>self, motor_id, target_callback)</span>
 </code></dt>
 <dd>
@@ -4515,7 +4515,7 @@ that was previously set by stepper_set_speed();</p>
 <p>[REPORT_TYPE=16, motor_id, target position in steps, time_stamp]</p>
 <p>Positive is clockwise from the 0 position.</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_is_running"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_is_running"><code class="name flex">
 <span>def <span class="ident">stepper_is_running</span></span>(<span>self, motor_id, callback)</span>
 </code></dt>
 <dd>
@@ -4560,7 +4560,7 @@ that was previously set by stepper_set_speed();</p>
 <p>:return: The current running state returned via the callback as a list:</p>
 <p>[REPORT_TYPE=18, motor_id, True or False for running state, time_stamp]</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_move"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_move"><code class="name flex">
 <span>def <span class="ident">stepper_move</span></span>(<span>self, motor_id, relative_position)</span>
 </code></dt>
 <dd>
@@ -4603,7 +4603,7 @@ that was previously set by stepper_set_speed();</p>
 position. Negative is anticlockwise from
 the current position. Maximum value is 32 bits.</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_move_to"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_move_to"><code class="name flex">
 <span>def <span class="ident">stepper_move_to</span></span>(<span>self, motor_id, position)</span>
 </code></dt>
 <dd>
@@ -4656,7 +4656,7 @@ after calling moveTo().</p>
 <p>:param motor_id: motor id: 0 - 3</p>
 <p>:param position: target position. Maximum value is 32 bits.</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_run"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_run"><code class="name flex">
 <span>def <span class="ident">stepper_run</span></span>(<span>self, motor_id, completion_callback=None)</span>
 </code></dt>
 <dd>
@@ -4705,7 +4705,7 @@ notification</p>
 <p>[report_type, motor_id, raw_time_stamp]</p>
 <p>The report_type = 19</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_run_speed"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_run_speed"><code class="name flex">
 <span>def <span class="ident">stepper_run_speed</span></span>(<span>self, motor_id)</span>
 </code></dt>
 <dd>
@@ -4736,7 +4736,7 @@ recent call to stepper_set_max_speed(). The motor will run continuously.</p>
 <p>Once called, the server will continuously attempt to step the motor.</p>
 <p>:param motor_id: 0 - 3</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_run_speed_to_position"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_run_speed_to_position"><code class="name flex">
 <span>def <span class="ident">stepper_run_speed_to_position</span></span>(<span>self, motor_id, completion_callback=None)</span>
 </code></dt>
 <dd>
@@ -4787,7 +4787,7 @@ notification</p>
 <p>[report_type, motor_id, raw_time_stamp]</p>
 <p>The report_type = 19</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_3_pins_inverted"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_3_pins_inverted"><code class="name flex">
 <span>def <span class="ident">stepper_set_3_pins_inverted</span></span>(<span>self, motor_id, direction=False, step=False, enable=False)</span>
 </code></dt>
 <dd>
@@ -4824,7 +4824,7 @@ notification</p>
 <p>:param step: True=inverted or False</p>
 <p>:param enable: True=inverted or False</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_4_pins_inverted"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_4_pins_inverted"><code class="name flex">
 <span>def <span class="ident">stepper_set_4_pins_inverted</span></span>(<span>self,<br>motor_id,<br>pin1_invert=False,<br>pin2_invert=False,<br>pin3_invert=False,<br>pin4_invert=False,<br>enable=False)</span>
 </code></dt>
 <dd>
@@ -4869,7 +4869,7 @@ notification</p>
 <p>:param pin4_invert: True=inverted or False</p>
 <p>:param enable: True=inverted or False</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_acceleration"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_acceleration"><code class="name flex">
 <span>def <span class="ident">stepper_set_acceleration</span></span>(<span>self, motor_id, acceleration)</span>
 </code></dt>
 <dd>
@@ -4918,7 +4918,7 @@ expensive call since it requires a square
 root to be calculated on the server.
 Don't call more often than needed.</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_current_position"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_current_position"><code class="name flex">
 <span>def <span class="ident">stepper_set_current_position</span></span>(<span>self, motor_id, position)</span>
 </code></dt>
 <dd>
@@ -4960,7 +4960,7 @@ positioning move.</p>
 0 - 3</p>
 <p>:param position: Position in steps. This is a 32 bit value</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_enable_pin"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_enable_pin"><code class="name flex">
 <span>def <span class="ident">stepper_set_enable_pin</span></span>(<span>self, motor_id, pin=255)</span>
 </code></dt>
 <dd>
@@ -5002,7 +5002,7 @@ is called.</p>
 <p>:param motor_id: 0 - 4
 :param pin: 0-0xff</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_max_speed"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_max_speed"><code class="name flex">
 <span>def <span class="ident">stepper_set_max_speed</span></span>(<span>self, motor_id, max_speed)</span>
 </code></dt>
 <dd>
@@ -5053,7 +5053,7 @@ result in non-linear accelerations and decelerations.</p>
 <p>:param motor_id: 0 - 3</p>
 <p>:param max_speed: 1 - 1000</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_min_pulse_width"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_min_pulse_width"><code class="name flex">
 <span>def <span class="ident">stepper_set_min_pulse_width</span></span>(<span>self, motor_id, minimum_width)</span>
 </code></dt>
 <dd>
@@ -5097,7 +5097,7 @@ result in non-linear accelerations and decelerations.</p>
 <p>:param motor_id: 0 -3</p>
 <p>:param minimum_width: A 16 bit unsigned value expressed in microseconds.</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_speed"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_speed"><code class="name flex">
 <span>def <span class="ident">stepper_set_speed</span></span>(<span>self, motor_id, speed)</span>
 </code></dt>
 <dd>
@@ -5148,7 +5148,7 @@ stepper_run_speed() method.
 The speed will be limited by the current value of
 stepper_set_max_speed().</p></div>
 </dd>
-<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_stop"><code class="name flex">
+<dt id="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_stop"><code class="name flex">
 <span>def <span class="ident">stepper_stop</span></span>(<span>self, motor_id)</span>
 </code></dt>
 <dd>
@@ -5196,66 +5196,66 @@ acceleration parameters.</p>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble">TelemetrixRpiPico2Ble</a></code></h4>
+<h4><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle">TelemetrixRpiPico2wBle</a></code></h4>
 <ul class="">
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.digital_write" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.digital_write">digital_write</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.disable_all_reporting" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.disable_all_reporting">disable_all_reporting</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.disable_analog_reporting" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.disable_analog_reporting">disable_analog_reporting</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.disable_digital_reporting" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.disable_digital_reporting">disable_digital_reporting</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.enable_analog_reporting" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.enable_analog_reporting">enable_analog_reporting</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.enable_digital_reporting" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.enable_digital_reporting">enable_digital_reporting</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.get_cpu_temperature" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.get_cpu_temperature">get_cpu_temperature</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.get_pico_pins" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.get_pico_pins">get_pico_pins</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.i2c_read" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.i2c_read">i2c_read</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.i2c_write" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.i2c_write">i2c_write</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.loop_back" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.loop_back">loop_back</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.neo_pixel_set_value" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.neo_pixel_set_value">neo_pixel_set_value</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.neopixel_clear" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.neopixel_clear">neopixel_clear</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.neopixel_fill" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.neopixel_fill">neopixel_fill</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.neopixel_show" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.neopixel_show">neopixel_show</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.pwm_frequency" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.pwm_frequency">pwm_frequency</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.pwm_range" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.pwm_range">pwm_range</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.pwm_write" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.pwm_write">pwm_write</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.servo_write" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.servo_write">servo_write</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_analog_input" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_analog_input">set_pin_mode_analog_input</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_dht" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_dht">set_pin_mode_dht</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_digital_input" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_digital_input">set_pin_mode_digital_input</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_digital_input_pull_down" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_digital_input_pull_down">set_pin_mode_digital_input_pull_down</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_digital_input_pullup" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_digital_input_pullup">set_pin_mode_digital_input_pullup</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_digital_output" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_digital_output">set_pin_mode_digital_output</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_i2c" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_i2c">set_pin_mode_i2c</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_neopixel" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_neopixel">set_pin_mode_neopixel</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_pwm_output" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_pwm_output">set_pin_mode_pwm_output</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_servo" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_servo">set_pin_mode_servo</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_sonar" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_sonar">set_pin_mode_sonar</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_spi" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_spi">set_pin_mode_spi</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_stepper" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.set_pin_mode_stepper">set_pin_mode_stepper</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.shutdown" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.shutdown">shutdown</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.spi_read_blocking" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.spi_read_blocking">spi_read_blocking</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.spi_write_blocking" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.spi_write_blocking">spi_write_blocking</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.start_aio" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.start_aio">start_aio</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_disable_outputs" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_disable_outputs">stepper_disable_outputs</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_enable_outputs" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_enable_outputs">stepper_enable_outputs</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_get_current_position" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_get_current_position">stepper_get_current_position</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_get_distance_to_go" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_get_distance_to_go">stepper_get_distance_to_go</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_get_max_speed" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_get_max_speed">stepper_get_max_speed</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_get_speed" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_get_speed">stepper_get_speed</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_get_target_position" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_get_target_position">stepper_get_target_position</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_is_running" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_is_running">stepper_is_running</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_move" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_move">stepper_move</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_move_to" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_move_to">stepper_move_to</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_run" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_run">stepper_run</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_run_speed" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_run_speed">stepper_run_speed</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_run_speed_to_position" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_run_speed_to_position">stepper_run_speed_to_position</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_3_pins_inverted" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_3_pins_inverted">stepper_set_3_pins_inverted</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_4_pins_inverted" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_4_pins_inverted">stepper_set_4_pins_inverted</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_acceleration" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_acceleration">stepper_set_acceleration</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_current_position" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_current_position">stepper_set_current_position</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_enable_pin" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_enable_pin">stepper_set_enable_pin</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_max_speed" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_max_speed">stepper_set_max_speed</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_min_pulse_width" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_min_pulse_width">stepper_set_min_pulse_width</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_speed" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_set_speed">stepper_set_speed</a></code></li>
-<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_stop" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2Ble.stepper_stop">stepper_stop</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.digital_write" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.digital_write">digital_write</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.disable_all_reporting" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.disable_all_reporting">disable_all_reporting</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.disable_analog_reporting" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.disable_analog_reporting">disable_analog_reporting</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.disable_digital_reporting" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.disable_digital_reporting">disable_digital_reporting</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.enable_analog_reporting" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.enable_analog_reporting">enable_analog_reporting</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.enable_digital_reporting" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.enable_digital_reporting">enable_digital_reporting</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.get_cpu_temperature" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.get_cpu_temperature">get_cpu_temperature</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.get_pico_pins" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.get_pico_pins">get_pico_pins</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.i2c_read" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.i2c_read">i2c_read</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.i2c_write" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.i2c_write">i2c_write</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.loop_back" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.loop_back">loop_back</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.neo_pixel_set_value" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.neo_pixel_set_value">neo_pixel_set_value</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.neopixel_clear" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.neopixel_clear">neopixel_clear</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.neopixel_fill" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.neopixel_fill">neopixel_fill</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.neopixel_show" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.neopixel_show">neopixel_show</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.pwm_frequency" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.pwm_frequency">pwm_frequency</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.pwm_range" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.pwm_range">pwm_range</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.pwm_write" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.pwm_write">pwm_write</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.servo_write" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.servo_write">servo_write</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_analog_input" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_analog_input">set_pin_mode_analog_input</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_dht" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_dht">set_pin_mode_dht</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_digital_input" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_digital_input">set_pin_mode_digital_input</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_digital_input_pull_down" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_digital_input_pull_down">set_pin_mode_digital_input_pull_down</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_digital_input_pullup" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_digital_input_pullup">set_pin_mode_digital_input_pullup</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_digital_output" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_digital_output">set_pin_mode_digital_output</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_i2c" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_i2c">set_pin_mode_i2c</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_neopixel" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_neopixel">set_pin_mode_neopixel</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_pwm_output" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_pwm_output">set_pin_mode_pwm_output</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_servo" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_servo">set_pin_mode_servo</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_sonar" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_sonar">set_pin_mode_sonar</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_spi" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_spi">set_pin_mode_spi</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_stepper" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.set_pin_mode_stepper">set_pin_mode_stepper</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.shutdown" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.shutdown">shutdown</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.spi_read_blocking" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.spi_read_blocking">spi_read_blocking</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.spi_write_blocking" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.spi_write_blocking">spi_write_blocking</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.start_aio" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.start_aio">start_aio</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_disable_outputs" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_disable_outputs">stepper_disable_outputs</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_enable_outputs" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_enable_outputs">stepper_enable_outputs</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_get_current_position" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_get_current_position">stepper_get_current_position</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_get_distance_to_go" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_get_distance_to_go">stepper_get_distance_to_go</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_get_max_speed" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_get_max_speed">stepper_get_max_speed</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_get_speed" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_get_speed">stepper_get_speed</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_get_target_position" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_get_target_position">stepper_get_target_position</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_is_running" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_is_running">stepper_is_running</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_move" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_move">stepper_move</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_move_to" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_move_to">stepper_move_to</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_run" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_run">stepper_run</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_run_speed" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_run_speed">stepper_run_speed</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_run_speed_to_position" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_run_speed_to_position">stepper_run_speed_to_position</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_3_pins_inverted" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_3_pins_inverted">stepper_set_3_pins_inverted</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_4_pins_inverted" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_4_pins_inverted">stepper_set_4_pins_inverted</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_acceleration" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_acceleration">stepper_set_acceleration</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_current_position" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_current_position">stepper_set_current_position</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_enable_pin" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_enable_pin">stepper_set_enable_pin</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_max_speed" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_max_speed">stepper_set_max_speed</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_min_pulse_width" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_min_pulse_width">stepper_set_min_pulse_width</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_speed" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_set_speed">stepper_set_speed</a></code></li>
+<li><code><a title="telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_stop" href="#telemetrix_rpi_pico_2w_ble.telemetrix_rpi_pico_2w_ble.TelemetrixRpiPico2wBle.stepper_stop">stepper_stop</a></code></li>
 </ul>
 </li>
 </ul>
